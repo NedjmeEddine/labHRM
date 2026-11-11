@@ -1,4 +1,4 @@
-# EL AME LAB — Single-User Business Management System
+# EL-AMEL LAB — Single-User Business Management System
 
 A simplified, streamlined, single-process web application tailored specifically for the business owner.
 
@@ -21,7 +21,7 @@ Compared to the multi-container full-stack template:
    - FastAPI natively serves both the REST API (`/api/v1`) and the compiled React single-page frontend.
    - The entire system can run in a single process (`uv run fastapi run`) or a single lightweight Docker container (~50MB RAM).
    - Removed Traefik, Adminer, Mailpit, Playwright containers, and the React-Email monorepo.
-4. **Preserved EL AME LAB Branding**:
+4. **Preserved EL-AMEL LAB Branding**:
    - Custom logo, color palette, dark/light theme, and layout components are preserved and fully functional.
 
 ---
@@ -92,7 +92,7 @@ Run the app on the admin's PC and access it securely from anywhere (phone, home 
    ```bash
    cloudflared tunnel create el-ame-lab
    ```
-3. Route your domain (e.g., `admin.elamelab.com`) directly to `http://localhost:8000`.
+3. Route your domain (e.g., `admin.el-amel-lab.com`) directly to `http://localhost:8000`.
 4. Benefit: **100% Free SSL, DDoS protection, Zero Trust access login, and persistent local SQLite on the owner's PC.**
 
 ### Option B: Cloud Hosting (Render / Fly.io)

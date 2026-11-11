@@ -1,5 +1,6 @@
 import argparse
 import sys
+
 from sqlmodel import Session, select
 
 from app.core.db import engine
@@ -8,7 +9,7 @@ from app.models import User
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Reset admin password for EL AME LAB")
+    parser = argparse.ArgumentParser(description="Reset admin password for EL-AMEL LAB")
     parser.add_argument("--email", required=True, help="Admin email address")
     parser.add_argument("--password", required=True, help="New password")
     args = parser.parse_args()

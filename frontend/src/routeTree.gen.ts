@@ -12,8 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutAttendanceRouteImport } from './routes/_layout/attendance'
+import { Route as LayoutPayrollRouteImport } from './routes/_layout/payroll'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutVacationsRouteImport } from './routes/_layout/vacations'
+import { Route as LayoutEmployeesIndexRouteImport } from './routes/_layout/employees/index'
+import { Route as LayoutEmployeesEmployeeIdRouteImport } from './routes/_layout/employees/$employeeId'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -29,9 +33,14 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutItemsRoute = LayoutItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
+const LayoutAttendanceRoute = LayoutAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPayrollRoute = LayoutPayrollRouteImport.update({
+  id: '/payroll',
+  path: '/payroll',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
@@ -39,39 +48,87 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutVacationsRoute = LayoutVacationsRouteImport.update({
+  id: '/vacations',
+  path: '/vacations',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutEmployeesIndexRoute = LayoutEmployeesIndexRouteImport.update({
+  id: '/employees/',
+  path: '/employees/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutEmployeesEmployeeIdRoute =
+  LayoutEmployeesEmployeeIdRouteImport.update({
+    id: '/employees/$employeeId',
+    path: '/employees/$employeeId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/login': typeof LoginRoute
-  '/items': typeof LayoutItemsRoute
+  '/attendance': typeof LayoutAttendanceRoute
+  '/payroll': typeof LayoutPayrollRoute
   '/settings': typeof LayoutSettingsRoute
+  '/vacations': typeof LayoutVacationsRoute
+  '/employees/$employeeId': typeof LayoutEmployeesEmployeeIdRoute
+  '/employees/': typeof LayoutEmployeesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/items': typeof LayoutItemsRoute
+  '/attendance': typeof LayoutAttendanceRoute
+  '/payroll': typeof LayoutPayrollRoute
   '/settings': typeof LayoutSettingsRoute
+  '/vacations': typeof LayoutVacationsRoute
   '/': typeof LayoutIndexRoute
+  '/employees/$employeeId': typeof LayoutEmployeesEmployeeIdRoute
+  '/employees': typeof LayoutEmployeesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
-  '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/attendance': typeof LayoutAttendanceRoute
+  '/_layout/payroll': typeof LayoutPayrollRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/vacations': typeof LayoutVacationsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/employees/$employeeId': typeof LayoutEmployeesEmployeeIdRoute
+  '/_layout/employees/': typeof LayoutEmployeesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/items' | '/settings'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/attendance'
+    | '/payroll'
+    | '/settings'
+    | '/vacations'
+    | '/employees/$employeeId'
+    | '/employees/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/items' | '/settings' | '/'
+  to:
+    | '/login'
+    | '/attendance'
+    | '/payroll'
+    | '/settings'
+    | '/vacations'
+    | '/'
+    | '/employees/$employeeId'
+    | '/employees'
   id:
     | '__root__'
     | '/_layout'
     | '/login'
-    | '/_layout/items'
+    | '/_layout/attendance'
+    | '/_layout/payroll'
     | '/_layout/settings'
+    | '/_layout/vacations'
     | '/_layout/'
+    | '/_layout/employees/$employeeId'
+    | '/_layout/employees/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -102,11 +159,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/items': {
-      id: '/_layout/items'
-      path: '/items'
-      fullPath: '/items'
-      preLoaderRoute: typeof LayoutItemsRouteImport
+    '/_layout/attendance': {
+      id: '/_layout/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof LayoutAttendanceRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/payroll': {
+      id: '/_layout/payroll'
+      path: '/payroll'
+      fullPath: '/payroll'
+      preLoaderRoute: typeof LayoutPayrollRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/settings': {
@@ -116,19 +180,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/vacations': {
+      id: '/_layout/vacations'
+      path: '/vacations'
+      fullPath: '/vacations'
+      preLoaderRoute: typeof LayoutVacationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/employees/': {
+      id: '/_layout/employees/'
+      path: '/employees'
+      fullPath: '/employees/'
+      preLoaderRoute: typeof LayoutEmployeesIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/employees/$employeeId': {
+      id: '/_layout/employees/$employeeId'
+      path: '/employees/$employeeId'
+      fullPath: '/employees/$employeeId'
+      preLoaderRoute: typeof LayoutEmployeesEmployeeIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
-  LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutAttendanceRoute: typeof LayoutAttendanceRoute
+  LayoutPayrollRoute: typeof LayoutPayrollRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutVacationsRoute: typeof LayoutVacationsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutEmployeesEmployeeIdRoute: typeof LayoutEmployeesEmployeeIdRoute
+  LayoutEmployeesIndexRoute: typeof LayoutEmployeesIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutItemsRoute: LayoutItemsRoute,
+  LayoutAttendanceRoute: LayoutAttendanceRoute,
+  LayoutPayrollRoute: LayoutPayrollRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutVacationsRoute: LayoutVacationsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutEmployeesEmployeeIdRoute: LayoutEmployeesEmployeeIdRoute,
+  LayoutEmployeesIndexRoute: LayoutEmployeesIndexRoute,
 }
 
 const LayoutRouteWithChildren =

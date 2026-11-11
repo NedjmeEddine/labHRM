@@ -5,7 +5,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
 echo "=========================================="
-echo " Starting EL AME LAB (Single-User App)"
+echo " Starting EL-AMEL LAB (Single-User App)"
 echo "=========================================="
 
 # Build frontend if not built yet

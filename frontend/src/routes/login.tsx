@@ -16,12 +16,11 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { useTranslation } from "@/lib/i18n"
 
 const formSchema = z.object({
   username: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(1, { message: "Password is required" }),
+  password: z.string().min(1, { message: "Password is required" }),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -38,7 +37,7 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       {
-        title: "Log In - EL AME LAB",
+        title: "Log In - EL-AMEL LAB",
       },
     ],
   }),
@@ -46,6 +45,8 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const { loginMutation } = useAuth()
+  const { t } = useTranslation()
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -69,9 +70,11 @@ function Login() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold tracking-tight">Admin Portal</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {t("adminPortal")}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Enter your credentials to access EL AME LAB
+              {t("loginSubtitle")}
             </p>
           </div>
 
@@ -81,7 +84,7 @@ function Login() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Admin Email</FormLabel>
+                  <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
                     <Input
                       data-testid="email-input"
@@ -100,11 +103,11 @@ function Login() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("password")}</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Password"
+                      placeholder="••••••••"
                       {...field}
                     />
                   </FormControl>
@@ -118,7 +121,7 @@ function Login() {
               loading={loginMutation.isPending}
               className="mt-2"
             >
-              Log In
+              {t("loginButton")}
             </LoadingButton>
           </div>
         </form>

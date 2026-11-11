@@ -19,7 +19,7 @@ export function Logo({
       <LogoLink asLink={asLink}>
         <img
           src={logoMark}
-          alt="EL AME LAB"
+          alt="EL-AMEL LAB"
           className={cn("size-8 rounded-full object-cover", className)}
         />
       </LogoLink>
@@ -31,7 +31,7 @@ export function Logo({
       <span className={cn("flex items-center gap-2.5", className)}>
         <img
           src={logoMark}
-          alt="EL AME LAB"
+          alt="EL-AMEL LAB"
           className={cn(
             "rounded-full object-cover",
             variant === "full" ? "size-12" : "size-8",
@@ -45,7 +45,7 @@ export function Logo({
               : "text-lg group-data-[collapsible=icon]:hidden",
           )}
         >
-          EL AME LAB
+          EL-AMEL LAB
         </span>
       </span>
     </LogoLink>

@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -13,10 +14,10 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    PROJECT_NAME: str = "EL AME LAB"
+    PROJECT_NAME: str = "EL-AMEL LAB"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "replace-this-secret-key-in-production-random-hex-string"
-    
+
     # 30 days token expiry for single-owner convenience
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
 
