@@ -264,7 +264,7 @@ function PayrollPage() {
             value={String(month)}
             onValueChange={(v) => setMonth(Number(v))}
           >
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-36" data-testid="payroll-month-trigger">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -619,6 +619,7 @@ function PayrollPage() {
                 <div className="grid gap-1">
                   <Label className="text-xs">{t("otherAllowances")}</Label>
                   <Input
+                    data-testid="edit-other-allowances"
                     type="number"
                     step="0.01"
                     value={editForm.other_allowances}
@@ -796,7 +797,10 @@ function PayrollPage() {
                 </div>
                 <div className="mt-4 rounded-md bg-brand-deep p-3 text-white flex items-center justify-between">
                   <span className="font-semibold">{t("netSalary")}</span>
-                  <span className="text-lg font-bold">
+                  <span
+                    className="text-lg font-bold"
+                    data-testid="edit-live-net"
+                  >
                     {formatDZD(liveNet)}
                   </span>
                 </div>
@@ -891,6 +895,7 @@ function PayrollPage() {
             <div className="grid gap-1.5">
               <Label>{t("bonusAmount")}</Label>
               <Input
+                data-testid="perf-bonus-input"
                 type="number"
                 step="0.01"
                 min={0}

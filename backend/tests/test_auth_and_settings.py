@@ -1,0 +1,111 @@
+from fastapi.testclient import TestClient
+
+from app.core.config import settings
+
+
+def test_health_check_and_frontend_served(client: TestClient) -> None:
+    res = client.get(f"{settings.API_V1_STR}/utils/health-check/")
+    assert res.status_code == 200
+    assert res.json() is True
+
+    root_res = client.get("/")
+    assert root_res.status_code == 200
+    assert "EL-AMEL LAB" in root_res.text
+
+
+def test_login_failures_and_unauthenticated_access(client: TestClient) -> None:
+    # Wrong password
+    bad = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": settings.ADMIN_EMAIL, "password": "wrongpassword"},
+    )
+    assert bad.status_code == 400
+
+    # Protected route without token (OAuth2PasswordBearer returns 401/403)
+    unauth = client.get(f"{settings.API_V1_STR}/employees/")
+    assert unauth.status_code in (401, 403)
+
+    # Invalid token
+    bad_tok = client.get(
+        f"{settings.API_V1_STR}/employees/",
+        headers={"Authorization": "Bearer not-a-valid-jwt"},
+    )
+    assert bad_tok.status_code == 403
+
+
+def test_admin_profile_and_password_update(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    me = client.get(f"{settings.API_V1_STR}/users/me", headers=auth_headers)
+    assert me.status_code == 200
+    assert me.json()["email"] == settings.ADMIN_EMAIL
+
+    upd = client.patch(
+        f"{settings.API_V1_STR}/users/me",
+        json={"full_name": "Dr. Amel Directeur"},
+        headers=auth_headers,
+    )
+    assert upd.status_code == 200
+    assert upd.json()["full_name"] == "Dr. Amel Directeur"
+
+    # Reject wrong current password
+    bad_pw = client.patch(
+        f"{settings.API_V1_STR}/users/me/password",
+        json={"current_password": "wrongpass", "new_password": "newstrongpassword"},
+        headers=auth_headers,
+    )
+    assert bad_pw.status_code == 400
+
+    # Reject identical new password
+    same_pw = client.patch(
+        f"{settings.API_V1_STR}/users/me/password",
+        json={
+            "current_password": settings.ADMIN_PASSWORD,
+            "new_password": settings.ADMIN_PASSWORD,
+        },
+        headers=auth_headers,
+    )
+    assert same_pw.status_code == 400
+
+    # Update password cleanly & login with new password
+    ok_pw = client.patch(
+        f"{settings.API_V1_STR}/users/me/password",
+        json={
+            "current_password": settings.ADMIN_PASSWORD,
+            "new_password": "newstrongpassword",
+        },
+        headers=auth_headers,
+    )
+    assert ok_pw.status_code == 200
+
+    new_login = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": settings.ADMIN_EMAIL, "password": "newstrongpassword"},
+    )
+    assert new_login.status_code == 200
+
+
+def test_company_settings_defaults_and_update(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    res = client.get(f"{settings.API_V1_STR}/settings/company", headers=auth_headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["company_name"] == "EL-AMEL LAB"
+    assert data["currency"] == "DZD"
+    assert data["working_days_per_month"] == 22
+    assert data["default_annual_vacation_days"] == 30
+
+    upd = client.patch(
+        f"{settings.API_V1_STR}/settings/company",
+        json={
+            "address": "12 Rue Didouche Mourad, Alger",
+            "phone": "0550 12 34 56",
+            "tax_id": "NIF 001234567890",
+            "working_days_per_month": 26,
+        },
+        headers=auth_headers,
+    )
+    assert upd.status_code == 200
+    assert upd.json()["address"] == "12 Rue Didouche Mourad, Alger"
+    assert upd.json()["working_days_per_month"] == 26

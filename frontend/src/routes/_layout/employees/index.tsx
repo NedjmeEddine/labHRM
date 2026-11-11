@@ -299,6 +299,7 @@ function EmployeesPage() {
               <div className="grid gap-1.5">
                 <Label>{t("fullName")} *</Label>
                 <Input
+                  data-testid="emp-full-name"
                   required
                   value={form.full_name}
                   onChange={(e) =>
@@ -322,6 +323,7 @@ function EmployeesPage() {
               <div className="grid gap-1.5">
                 <Label>{t("jobTitle")} *</Label>
                 <Input
+                  data-testid="emp-job-title"
                   required
                   value={form.job_title}
                   onChange={(e) =>
@@ -344,6 +346,7 @@ function EmployeesPage() {
               <div className="grid gap-1.5">
                 <Label>{t("baseSalary")} *</Label>
                 <Input
+                  data-testid="emp-base-salary"
                   required
                   type="number"
                   step="0.01"
@@ -357,6 +360,7 @@ function EmployeesPage() {
               <div className="grid gap-1.5">
                 <Label>{t("hireDate")} *</Label>
                 <Input
+                  data-testid="emp-hire-date"
                   required
                   type="date"
                   value={form.hire_date}

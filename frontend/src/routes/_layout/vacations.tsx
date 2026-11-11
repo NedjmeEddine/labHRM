@@ -336,6 +336,7 @@ function VacationsPage() {
               <div className="grid gap-1.5">
                 <Label>{t("startDate")} *</Label>
                 <Input
+                  data-testid="vac-start"
                   type="date"
                   required
                   value={startDate}
@@ -345,6 +346,7 @@ function VacationsPage() {
               <div className="grid gap-1.5">
                 <Label>{t("endDate")} *</Label>
                 <Input
+                  data-testid="vac-end"
                   type="date"
                   required
                   value={endDate}

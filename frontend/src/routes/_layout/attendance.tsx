@@ -280,6 +280,7 @@ function AttendancePage() {
           <div className="grid gap-1.5">
             <Label>{t("startDate")}</Label>
             <Input
+              data-testid="interval-start"
               type="date"
               value={startStr ?? ""}
               onChange={(e) => {
@@ -296,6 +297,7 @@ function AttendancePage() {
           <div className="grid gap-1.5">
             <Label>{t("endDate")}</Label>
             <Input
+              data-testid="interval-end"
               type="date"
               value={endStr ?? ""}
               onChange={(e) => {
@@ -515,6 +517,7 @@ function AttendancePage() {
                   {modalMode === "range" ? t("startDate") : t("date")}
                 </Label>
                 <Input
+                  data-testid="absence-date"
                   type="date"
                   required
                   value={formDate}
