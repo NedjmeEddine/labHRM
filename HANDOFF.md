@@ -204,25 +204,60 @@ uv run python reset_admin.py --email admin@example.com --password "NewPassword12
 
 ---
 
-## 9. Deployment Options & Pending Next Steps
+## 9. Target Desktop + Remote Deployment & GitHub Auto-Update Plan
 
-### Deployment Strategy Discussed
-* **Render Free Tier Warning:** Render free web services wipe local files on sleep/restart (**ephemeral disk**). Never run local SQLite on Render Free — use **Fly.io** (persistent 1GB volume), a small VPS, or point `DATABASE_URL` to a free managed Postgres (Neon/Supabase).
-* **Combined Desktop + Remote Access (Discussed, Not Yet Implemented):**
-  * *Option A (Work PC stays awake):* Electron/System-Tray wrapper or `pywebview` on Work PC running FastAPI on a fixed localhost port + `cloudflared` (Cloudflare Tunnel) for free remote mobile/home HTTPS access.
-  * *Option B (24/7 Cloud):* Host container on Fly.io/VPS + use Chrome/Edge "Install App" (PWA) or thin Electron client on Work PC, Home PC, and Phone.
+### Approved Desktop Choice: **Tauri v2** (NOT Electron)
+* **Decision:** Use **Tauri v2** instead of Electron.js for smaller binary size (~15–50 MB vs ~150+ MB), lower RAM/CPU usage via native OS WebView (WebView2 on Windows), and minimal configuration.
+* **Sidecar Pattern:** Tauri (`src-tauri/`) bundles the FastAPI + SQLite + `fpdf2` backend (compiled via `PyInstaller`) as a Tauri sidecar (`tauri-plugin-shell`).
+
+### Target Hybrid Deployment Topology (Work PC Backend + Cloudflare Remote Access)
+```
+┌───────────────────────────────────────────────────────────┐
+│              OFFICE / WORK PC (Source of Truth)           │
+│                                                           │
+│  [Tauri v2 Window + Tray] ──► http://127.0.0.1:8000       │
+│  (Hides to tray on close)     (FastAPI Sidecar + SQLite)  │
+│                               SQLite in %APPDATA% (WAL)   │
+│  [cloudflared service] ───────┘         ▲                 │
+└─────────────────────────────────────────┼─────────────────┘
+                                          │ Encrypted HTTPS
+                                          ▼
+                        [Owner's Phone / Home PC Browser]
+                           https://rh.your-domain.com
+```
+1. **Work PC as Live Server:**
+   * Tauri spawns the FastAPI sidecar on a **fixed localhost port** (e.g., `127.0.0.1:8000`) so `cloudflared` always knows where to forward traffic.
+   * Store SQLite outside `Program Files` in OS `app_data_dir` (e.g., `%APPDATA%\com.elamel-lab.hrm\app.db`), passed via `DATABASE_URL` env var.
+   * **System Tray (`TrayIconBuilder`) + Autostart (`tauri-plugin-autostart`):** Closing the Tauri window minimizes to the system tray instead of killing the FastAPI sidecar, keeping remote access active. Disable Windows sleep while plugged in.
+   * **SQLite WAL Mode:** Enable `PRAGMA journal_mode=WAL` in `backend/app/core/db.py` so simultaneous Work PC + Phone reads/writes never hit lock errors.
+2. **Remote Access via Cloudflare Tunnel (`cloudflared`):**
+   * Exposes `127.0.0.1:8000` over HTTPS with free SSL, zero router port forwarding, and optional Cloudflare Zero Trust Access protection.
+   * *(Fallback if Work PC cannot stay powered on after hours: deploy the Docker container to Fly.io with a 1GB persistent SQLite volume or a VPS. **Render Free Tier Warning:** Render free web services wipe local files on sleep/restart — never run local SQLite on Render Free without external managed Postgres like Neon/Supabase.)*
+
+### Planned Feature: GitHub-Powered In-App Update Button
+The business owner needs an in-app **"Vérifier les mises à jour / Update App"** button to keep the application up to date from code stored in **GitHub**:
+1. **Recommended for Tauri Desktop App (`tauri-plugin-updater` + GitHub Releases):**
+   * Set up **GitHub Actions** (`.github/workflows/release.yml` on `windows-latest`) triggered on git version tags (`v*`): builds React (`bun run build`), compiles FastAPI (`PyInstaller`), packages Tauri installer + signed `latest.json`, and publishes a **GitHub Release**.
+   * Inside Settings (`/settings`, desktop mode), the Update button triggers `@tauri-apps/plugin-updater` (`check()` -> `downloadAndInstall()`), automatically backing up `app.db` in `app_data_dir/backups/` before replacing binaries and restarting the sidecar cleanly.
+2. **Alternative for Git-Deployed Host (`GET /api/v1/system/update-status`, `POST /api/v1/system/update`):**
+   * Checks GitHub API (`commits/main` or `releases/latest`) against local commit/version.
+   * On click: creates timestamped SQLite backup -> pulls code/release artifact from GitHub -> syncs `uv`/frontend assets -> restarts supervised service.
+3. Because remote phone/home browsers load directly from the Work PC's FastAPI server, updating the Work PC automatically updates remote access too.
 
 ### Recommended Next Steps (Not Yet Done)
 1. **Client Validation & Business Rules Confirmation:**
    * Visually review a generated French PDF (*Bulletin de Paie*) with the client.
    * Confirm Algerian workweek / weekend days (e.g., should multi-day vacations/absence ranges skip Fri/Sat or Fri automatically?).
    * Confirm whether statutory Algerian payroll deductions (**CNAS 9%**, **IRG**, **Prime de panier/transport**) need automated calculation lines or if manual editable fields are sufficient.
-2. **Pre-Production Hardening:**
-   * Enable SQLite WAL mode (`PRAGMA journal_mode=WAL`) in `backend/app/core/db.py` for concurrent desktop + remote reads.
+2. **Pre-Packaging Hardening:**
+   * Enable SQLite WAL mode (`PRAGMA journal_mode=WAL`) in `backend/app/core/db.py`.
    * Add a one-click **"Télécharger sauvegarde (.db)"** button in Settings (`/settings`) + backend backup endpoint.
    * Merge `feat/hr-features` into `main` once validated.
-3. **Optional Desktop Packaging (Last Step):**
-   * Create a `feat/desktop-app` branch to package with `pywebview` or `Electron.js` + `PyInstaller` (note: Windows `.exe` builds must run on Windows or GitHub Actions `windows-latest` runner).
+3. **Desktop + Auto-Update + Tunnel Implementation (`feat/tauri-desktop` branch):**
+   * Add `src-tauri/` (Tauri v2 + `tauri-plugin-shell` sidecar + `TrayIconBuilder` + `tauri-plugin-autostart` + `tauri-plugin-updater`).
+   * Add `PyInstaller` spec for FastAPI backend (bundling `app/frontend`, `app/assets/fonts`, `app/assets/el-amel-lab-logo.png`).
+   * Add GitHub Actions workflow on `windows-latest` to build signed Windows installers & `latest.json` to GitHub Releases.
+   * Configure `cloudflared` tunnel on Work PC pointing to `http://127.0.0.1:8000`.
 
 ---
 
