@@ -223,3 +223,20 @@ uv run python reset_admin.py --email admin@example.com --password "NewPassword12
    * Merge `feat/hr-features` into `main` once validated.
 3. **Optional Desktop Packaging (Last Step):**
    * Create a `feat/desktop-app` branch to package with `pywebview` or `Electron.js` + `PyInstaller` (note: Windows `.exe` builds must run on Windows or GitHub Actions `windows-latest` runner).
+
+---
+
+## 10. Known Minor Cleanups & Audit Notes
+
+1. **Dual Frontend API Clients (`@/client` vs `lib/hr-api.ts`):**
+   * `main.tsx`, `hooks/useAuth.ts`, `UserSettings/UserInformation.tsx`, and `UserSettings/ChangePassword.tsx` still use the template's generated `@/client` (`LoginService`, `UsersService`).
+   * All new HR routes use `frontend/src/lib/hr-api.ts`.
+   * `frontend/src/client/` and `useAuth.ts` (`signUpMutation`) still contain unused template artifacts (`ItemsService`, `registerUser`) since `openapi-ts` was not re-run. Do not delete `src/client/` without migrating `useAuth.ts`, `UserInformation.tsx`, and `ChangePassword.tsx` to `hr-api.ts` (or regenerating `openapi-ts`).
+2. **Remaining Unlocalized Template Strings:**
+   * `UserInformation.tsx`, `ChangePassword.tsx`, and the `Light`/`Dark`/`System` items in `Appearance.tsx` still use hardcoded English copy instead of `useTranslation()`.
+   * Success toast strings on HR mutations (`"Employé ajouté"`, `"Congé enregistré"`, etc.) are currently French-only regardless of `FR/EN` toggle.
+3. **Environment & Docker Notes:**
+   * Root `.env` does not exist yet (only `.env.example`), so the app defaults to `admin@example.com` / `changethis` and a dev `SECRET_KEY`. Always create `.env` with strong values before any live deployment.
+   * `frontend/.env` sets `VITE_API_URL=` (empty) so compiled builds call relative `/api/v1` paths cleanly.
+   * `Dockerfile` and `docker-compose.yml` have not been tested via `docker build` in this session (if using `--frozen`, update `Dockerfile` to copy `backend/uv.lock*` alongside `backend/pyproject.toml`).
+4. **Sibling Reference Folder:** `/home/nedjmo/labHRM/fastapi-template-test/` is the original template workspace and is unrelated to runtime execution of `lab-hrm`.
