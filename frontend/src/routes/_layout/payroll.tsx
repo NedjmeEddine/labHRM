@@ -329,10 +329,18 @@ function PayrollPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("fullName")}</TableHead>
-                  <TableHead>{t("baseSalary")}</TableHead>
-                  <TableHead>{t("bonusAmount")}</TableHead>
-                  <TableHead>{t("absenceDeduction")}</TableHead>
-                  <TableHead>{t("netSalary")}</TableHead>
+                  <TableHead className="whitespace-normal">
+                    {t("baseSalary")}
+                  </TableHead>
+                  <TableHead className="whitespace-normal">
+                    {t("bonusAmount")}
+                  </TableHead>
+                  <TableHead className="whitespace-normal">
+                    {t("absenceDeduction")}
+                  </TableHead>
+                  <TableHead className="whitespace-normal">
+                    {t("netSalary")}
+                  </TableHead>
                   <TableHead>{t("status")}</TableHead>
                   <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
@@ -571,7 +579,7 @@ function PayrollPage() {
         open={editingPayslip !== null}
         onOpenChange={(o) => !o && setEditingPayslip(null)}
       >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {t("payslipEditorTitle")} — {editingPayslip?.employee_name} (
@@ -767,38 +775,46 @@ function PayrollPage() {
                   Bulletin de Paie (Aperçu)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
+              <CardContent className="space-y-2.5 text-sm">
+                <div className="flex justify-between gap-3">
                   <span className="text-muted-foreground">Salaire de base</span>
-                  <span>{formatDZD(editForm.base_salary)}</span>
+                  <span className="whitespace-nowrap">
+                    {formatDZD(editForm.base_salary)}
+                  </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-3">
                   <span className="text-muted-foreground">Prime perf.</span>
-                  <span className="text-green-600">
+                  <span className="text-green-600 whitespace-nowrap">
                     +{formatDZD(editForm.performance_bonus)}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-3">
                   <span className="text-muted-foreground">Indemnités + HS</span>
-                  <span>
+                  <span className="whitespace-nowrap">
                     +
                     {formatDZD(
                       editForm.other_allowances + editForm.overtime_pay,
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between border-t pt-2 font-medium">
+                <div className="flex justify-between gap-3 border-t pt-2 font-medium">
                   <span>{t("grossSalary")}</span>
-                  <span>{formatDZD(liveGross)}</span>
+                  <span className="whitespace-nowrap">
+                    {formatDZD(liveGross)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-destructive">
-                  <span>Retenues (absences + autres)</span>
-                  <span>-{formatDZD(liveDeductions)}</span>
+                <div className="flex justify-between gap-3 text-destructive">
+                  <span>Retenues</span>
+                  <span className="whitespace-nowrap">
+                    -{formatDZD(liveDeductions)}
+                  </span>
                 </div>
-                <div className="mt-4 rounded-md bg-brand-deep p-3 text-white flex items-center justify-between">
-                  <span className="font-semibold">{t("netSalary")}</span>
+                <div className="mt-4 rounded-md bg-brand-deep p-3.5 text-white flex items-center justify-between gap-3">
+                  <span className="font-semibold whitespace-nowrap">
+                    {t("netSalary")}
+                  </span>
                   <span
-                    className="text-lg font-bold"
+                    className="text-lg font-bold whitespace-nowrap"
                     data-testid="edit-live-net"
                   >
                     {formatDZD(liveNet)}

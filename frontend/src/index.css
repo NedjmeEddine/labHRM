@@ -130,3 +130,17 @@
     cursor: pointer;
   }
 }
+
+.rdp-root {
+  --rdp-accent-color: var(--brand);
+  --rdp-accent-background-color: var(--mist);
+  --rdp-range_middle-background-color: var(--mist);
+  --rdp-range_middle-color: var(--brand-deep);
+}
+
+.dark .rdp-root {
+  --rdp-accent-color: #3b82f6;
+  --rdp-accent-background-color: rgba(59, 130, 246, 0.2);
+  --rdp-range_middle-background-color: rgba(59, 130, 246, 0.15);
+  --rdp-range_middle-color: #e2e8f0;
+}

@@ -101,5 +101,5 @@ test("complete HR workflow: employee, absence interval, vacation, performance, e
   expect(header).toBe("%PDF")
 
   // Verify updated net salary persisted in table
-  await expect(page.getByText("48 000,00 DZD")).toBeVisible()
+  await expect(page.getByRole("cell", { name: "48 000,00 DZD" })).toBeVisible()
 })

@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useTranslation } from "@/lib/i18n"
 
 type LucideIcon = React.FC<React.SVGProps<SVGSVGElement>>
 
@@ -25,15 +26,19 @@ const ICON_MAP: Record<Theme, LucideIcon> = {
 export const SidebarAppearance = () => {
   const { isMobile } = useSidebar()
   const { setTheme, theme } = useTheme()
+  const { t } = useTranslation()
   const Icon = ICON_MAP[theme]
 
   return (
     <SidebarMenuItem>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton tooltip="Appearance" data-testid="theme-button">
+          <SidebarMenuButton
+            tooltip={t("appearance")}
+            data-testid="theme-button"
+          >
             <Icon className="size-4 text-muted-foreground" />
-            <span>Appearance</span>
+            <span>{t("appearance")}</span>
             <span className="sr-only">Toggle theme</span>
           </SidebarMenuButton>
         </DropdownMenuTrigger>

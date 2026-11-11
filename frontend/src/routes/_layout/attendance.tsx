@@ -8,7 +8,7 @@ import {
   startOfMonth,
 } from "date-fns"
 import { CalendarPlus, Download, Plus, Trash2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { type CSSProperties, useMemo, useState } from "react"
 import { type DateRange, DayPicker } from "react-day-picker"
 import { enUS, fr } from "react-day-picker/locale"
 import "react-day-picker/style.css"
@@ -320,7 +320,7 @@ function AttendancePage() {
                 setCalendarMonth(today)
               }}
             >
-              Ce mois / Current
+              {t("thisMonth")}
             </Button>
           </div>
         </CardContent>
@@ -329,7 +329,7 @@ function AttendancePage() {
       {/* Main Grid: Calendar Left + Interval Summary & List Right */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Calendar Card */}
-        <Card className="lg:col-span-5">
+        <Card className="lg:col-span-4">
           <CardContent className="pt-6 flex flex-col items-center">
             <DayPicker
               mode="range"
@@ -338,6 +338,14 @@ function AttendancePage() {
               month={calendarMonth}
               onMonthChange={setCalendarMonth}
               locale={lang === "fr" ? fr : enUS}
+              style={
+                {
+                  "--rdp-accent-color": "var(--brand)",
+                  "--rdp-accent-background-color": "var(--mist)",
+                  "--rdp-range_middle-background-color": "var(--mist)",
+                  "--rdp-range_middle-color": "var(--brand-deep)",
+                } as CSSProperties
+              }
               modifiers={{
                 unpaid: unpaidDates,
                 paid: paidDates,
@@ -373,7 +381,7 @@ function AttendancePage() {
         </Card>
 
         {/* Right Side: Summary Stats + Table */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
+        <div className="lg:col-span-8 flex flex-col gap-4">
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
             <Card>
               <CardContent className="pt-4">
@@ -431,23 +439,26 @@ function AttendancePage() {
                 {intervalSummary && intervalSummary.data.length > 0 ? (
                   intervalSummary.data.map((ab) => (
                     <TableRow key={ab.id}>
-                      <TableCell className="font-mono text-xs">
+                      <TableCell className="font-mono text-xs whitespace-nowrap">
                         {ab.date}
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium whitespace-nowrap">
                         {ab.employee_name}
                       </TableCell>
-                      <TableCell className="text-xs">
+                      <TableCell className="text-xs whitespace-nowrap">
                         {getTypeLabel(ab.absence_type)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Badge
                           variant={ab.is_paid ? "secondary" : "destructive"}
                         >
                           {ab.is_paid ? t("paid") : t("unpaid")}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell
+                        className="text-xs text-muted-foreground max-w-[130px] truncate"
+                        title={ab.reason ?? undefined}
+                      >
                         {ab.reason || "—"}
                       </TableCell>
                       <TableCell className="text-right">

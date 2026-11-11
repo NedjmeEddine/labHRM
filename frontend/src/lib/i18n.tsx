@@ -17,6 +17,8 @@ const translations = {
     password: "Mot de passe",
     loginButton: "Se connecter",
     logout: "Déconnexion",
+    appearance: "Apparence",
+    thisMonth: "Ce mois",
 
     // Common
     search: "Rechercher...",
@@ -207,6 +209,8 @@ const translations = {
     password: "Password",
     loginButton: "Log In",
     logout: "Log Out",
+    appearance: "Appearance",
+    thisMonth: "This Month",
 
     // Common
     search: "Search...",

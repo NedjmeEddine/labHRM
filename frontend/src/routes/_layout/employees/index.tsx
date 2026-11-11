@@ -283,7 +283,7 @@ function EmployeesPage() {
 
       {/* Add / Edit Employee Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? t("edit") : t("addEmployee")}</DialogTitle>
           </DialogHeader>
