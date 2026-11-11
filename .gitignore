@@ -1,0 +1,25 @@
+# Environment
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+backend/data/
+
+# Node / Frontend
+node_modules/
+dist/
+backend/app/frontend/
+.tanstack/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

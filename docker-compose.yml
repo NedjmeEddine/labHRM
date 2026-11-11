@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    container_name: el_ame_lab_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist SQLite database file on host disk
+      - ./data:/app/backend/data
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-replace-with-a-secure-random-key-in-prod}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changethis}
+      - PROJECT_NAME=EL AME LAB
