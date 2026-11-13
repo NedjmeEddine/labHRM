@@ -31,3 +31,4 @@ backend/dist/
 # Rust / Tauri target & compiled sidecar binaries
 frontend/src-tauri/target/
 frontend/src-tauri/binaries/
+*.key

@@ -53,51 +53,57 @@ pub fn run() {
             let data_dir_str = data_dir.to_string_lossy().to_string();
             let db_url = format!("sqlite:///{}", data_dir.join("app.db").to_string_lossy());
 
-            // 2. Spawn PyInstaller backend sidecar
-            let sidecar_cmd = app
-                .shell()
-                .sidecar("el-amel-backend")
-                .map_err(|e| format!("Failed to configure sidecar: {e}"))?
-                .env("HOST", "127.0.0.1")
-                .env("PORT", "8000")
-                .env("DATA_DIR", &data_dir_str)
-                .env("DATABASE_URL", &db_url);
+            // 2. Check if a backend is already running on port 8000 (e.g. during local web dev)
+            let is_running = TcpStream::connect("127.0.0.1:8000").is_ok();
+            if is_running {
+                println!("[Tauri] An active backend server was detected on 127.0.0.1:8000. Reusing it.");
+            } else {
+                println!("[Tauri] No existing backend found on 127.0.0.1:8000. Spawning PyInstaller sidecar...");
+                let sidecar_cmd = app
+                    .shell()
+                    .sidecar("el-amel-backend")
+                    .map_err(|e| format!("Failed to configure sidecar: {e}"))?
+                    .env("HOST", "127.0.0.1")
+                    .env("PORT", "8000")
+                    .env("DATA_DIR", &data_dir_str)
+                    .env("DATABASE_URL", &db_url);
 
-            let (mut rx, child) = sidecar_cmd
-                .spawn()
-                .map_err(|e| format!("Failed to spawn sidecar: {e}"))?;
+                let (mut rx, child) = sidecar_cmd
+                    .spawn()
+                    .map_err(|e| format!("Failed to spawn sidecar: {e}"))?;
 
-            // Store child handle for clean teardown on exit
-            if let Ok(mut guard) = backend_child_holder.lock() {
-                *guard = Some(child);
-            }
-
-            // Stream sidecar logs in background thread
-            tauri::async_runtime::spawn(async move {
-                while let Some(event) = rx.recv().await {
-                    match event {
-                        CommandEvent::Stdout(line) => {
-                            let text = String::from_utf8_lossy(&line);
-                            print!("[Backend] {text}");
-                        }
-                        CommandEvent::Stderr(line) => {
-                            let text = String::from_utf8_lossy(&line);
-                            eprint!("[Backend Error] {text}");
-                        }
-                        CommandEvent::Error(err) => {
-                            eprintln!("[Backend Process Error] {err}");
-                        }
-                        CommandEvent::Terminated(status) => {
-                            eprintln!("[Backend Terminated] status: {:?}", status.code);
-                            break;
-                        }
-                        _ => {}
-                    }
+                // Store child handle for clean teardown on exit
+                if let Ok(mut guard) = backend_child_holder.lock() {
+                    *guard = Some(child);
                 }
-            });
 
-            // 3. Wait for backend to accept connections on port 8000
-            wait_for_server("127.0.0.1:8000", 50, Duration::from_millis(100));
+                // Stream sidecar logs in background thread
+                tauri::async_runtime::spawn(async move {
+                    while let Some(event) = rx.recv().await {
+                        match event {
+                            CommandEvent::Stdout(line) => {
+                                let text = String::from_utf8_lossy(&line);
+                                print!("[Backend] {text}");
+                            }
+                            CommandEvent::Stderr(line) => {
+                                let text = String::from_utf8_lossy(&line);
+                                eprintln!("[Backend Error] {text}");
+                            }
+                            CommandEvent::Error(err) => {
+                                eprintln!("[Backend Process Error] {err}");
+                            }
+                            CommandEvent::Terminated(status) => {
+                                eprintln!("[Backend Terminated] status: {:?}", status.code);
+                                break;
+                            }
+                            _ => {}
+                        }
+                    }
+                });
+
+                // Wait for backend to accept connections on port 8000
+                wait_for_server("127.0.0.1:8000", 50, Duration::from_millis(100));
+            }
 
             // 4. Setup System Tray
             let open_item = MenuItem::with_id(app, "open", "Ouvrir EL-AMEL LAB", true, None::<&str>)?;
