@@ -85,7 +85,7 @@ export function SupplierFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="supp-name-input">{t("supplierName")} *</Label>
               <Input
@@ -114,7 +114,7 @@ export function SupplierFormDialog({
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="supp-phone-input">{t("phone")}</Label>
               <Input
@@ -150,7 +150,7 @@ export function SupplierFormDialog({
             />
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-3 border-t pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t pt-3">
             <div className="grid gap-1.5">
               <Label htmlFor="supp-tax-id" className="text-xs">
                 NIF (Identifiant Fiscal)

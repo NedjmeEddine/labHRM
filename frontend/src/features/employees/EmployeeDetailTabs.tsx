@@ -34,43 +34,43 @@ export function EmployeeAbsencesTab({ absences }: { absences: Absence[] }) {
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("date")}</TableHead>
-            <TableHead>{t("type")}</TableHead>
-            <TableHead>{t("paid")}</TableHead>
-            <TableHead>{t("reason")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {absences.length > 0 ? (
-            absences.map((ab) => (
-              <TableRow key={ab.id}>
-                <TableCell>{ab.date}</TableCell>
-                <TableCell>{getAbsenceTypeLabel(ab.absence_type, t)}</TableCell>
-                <TableCell>
-                  <Badge variant={ab.is_paid ? "secondary" : "destructive"}>
-                    {ab.is_paid ? t("paid") : t("unpaid")}
-                  </Badge>
-                </TableCell>
-                <TableCell>{ab.reason || "—"}</TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={4}
-                className="text-center py-6 text-muted-foreground"
-              >
-                {t("noData")}
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t("date")}</TableHead>
+          <TableHead>{t("type")}</TableHead>
+          <TableHead>{t("paid")}</TableHead>
+          <TableHead className="hidden sm:table-cell">{t("reason")}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {absences.length > 0 ? (
+          absences.map((ab) => (
+            <TableRow key={ab.id}>
+              <TableCell>{ab.date}</TableCell>
+              <TableCell>{getAbsenceTypeLabel(ab.absence_type, t)}</TableCell>
+              <TableCell>
+                <Badge variant={ab.is_paid ? "secondary" : "destructive"}>
+                  {ab.is_paid ? t("paid") : t("unpaid")}
+                </Badge>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                {ab.reason || "—"}
               </TableCell>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell
+              colSpan={4}
+              className="text-center py-6 text-muted-foreground"
+            >
+              {t("noData")}
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   )
 }
 
@@ -78,52 +78,52 @@ export function EmployeeVacationsTab({ vacations }: { vacations: Vacation[] }) {
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t("startDate")}</TableHead>
+          <TableHead>{t("endDate")}</TableHead>
+          <TableHead className="hidden sm:table-cell">
+            {t("duration")}
+          </TableHead>
+          <TableHead className="hidden md:table-cell">{t("type")}</TableHead>
+          <TableHead>{t("status")}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {vacations.length > 0 ? (
+          vacations.map((v) => {
+            const statusDisplay = getVacationStatusDisplay(v.status, t)
+            return (
+              <TableRow key={v.id}>
+                <TableCell>{v.start_date}</TableCell>
+                <TableCell>{v.end_date}</TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  {v.days_count} {t("days")}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {getVacationTypeLabel(v.vacation_type, t)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={statusDisplay.variant}>
+                    {statusDisplay.label}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            )
+          })
+        ) : (
           <TableRow>
-            <TableHead>{t("startDate")}</TableHead>
-            <TableHead>{t("endDate")}</TableHead>
-            <TableHead>{t("duration")}</TableHead>
-            <TableHead>{t("type")}</TableHead>
-            <TableHead>{t("status")}</TableHead>
+            <TableCell
+              colSpan={5}
+              className="text-center py-6 text-muted-foreground"
+            >
+              {t("noData")}
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {vacations.length > 0 ? (
-            vacations.map((v) => {
-              const statusDisplay = getVacationStatusDisplay(v.status, t)
-              return (
-                <TableRow key={v.id}>
-                  <TableCell>{v.start_date}</TableCell>
-                  <TableCell>{v.end_date}</TableCell>
-                  <TableCell>
-                    {v.days_count} {t("days")}
-                  </TableCell>
-                  <TableCell>
-                    {getVacationTypeLabel(v.vacation_type, t)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={statusDisplay.variant}>
-                      {statusDisplay.label}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              )
-            })
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                className="text-center py-6 text-muted-foreground"
-              >
-                {t("noData")}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+        )}
+      </TableBody>
+    </Table>
   )
 }
 
@@ -139,41 +139,43 @@ export function EmployeeSalaryTab({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("date")}</TableHead>
-              <TableHead>{t("previousSalary")}</TableHead>
-              <TableHead>{t("newSalary")}</TableHead>
-              <TableHead>{t("reason")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {salaryHistory.length > 0 ? (
-              salaryHistory.map((h) => (
-                <TableRow key={h.id}>
-                  <TableCell>{formatDisplayDate(h.changed_at, lang)}</TableCell>
-                  <TableCell>{formatDZD(h.previous_salary)}</TableCell>
-                  <TableCell className="font-semibold text-brand">
-                    {formatDZD(h.new_salary)}
-                  </TableCell>
-                  <TableCell>{h.reason}</TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center py-6 text-muted-foreground"
-                >
-                  {t("noData")}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("date")}</TableHead>
+            <TableHead className="hidden sm:table-cell">
+              {t("previousSalary")}
+            </TableHead>
+            <TableHead>{t("newSalary")}</TableHead>
+            <TableHead>{t("reason")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {salaryHistory.length > 0 ? (
+            salaryHistory.map((h) => (
+              <TableRow key={h.id}>
+                <TableCell>{formatDisplayDate(h.changed_at, lang)}</TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  {formatDZD(h.previous_salary)}
                 </TableCell>
+                <TableCell className="font-semibold text-brand">
+                  {formatDZD(h.new_salary)}
+                </TableCell>
+                <TableCell>{h.reason}</TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                className="text-center py-6 text-muted-foreground"
+              >
+                {t("noData")}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       {reviews.length > 0 ? (
         <Card>
@@ -219,15 +221,19 @@ export function EmployeePayslipsTab({ payslips }: { payslips: Payslip[] }) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="-mx-3.5 px-3.5 sm:mx-0 sm:px-0 overflow-x-auto [webkit-overflow-scrolling:touch]">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>
               {t("month")} / {t("year")}
             </TableHead>
-            <TableHead>{t("grossSalary")}</TableHead>
-            <TableHead>{t("absenceDeduction")}</TableHead>
+            <TableHead className="hidden sm:table-cell">
+              {t("grossSalary")}
+            </TableHead>
+            <TableHead className="hidden md:table-cell">
+              {t("absenceDeduction")}
+            </TableHead>
             <TableHead>{t("netSalary")}</TableHead>
             <TableHead>{t("status")}</TableHead>
             <TableHead className="text-right">{t("actions")}</TableHead>
@@ -242,8 +248,10 @@ export function EmployeePayslipsTab({ payslips }: { payslips: Payslip[] }) {
                   <TableCell className="font-medium">
                     {months[p.month - 1]} {p.year}
                   </TableCell>
-                  <TableCell>{formatDZD(p.gross_salary)}</TableCell>
-                  <TableCell className="text-destructive">
+                  <TableCell className="hidden sm:table-cell">
+                    {formatDZD(p.gross_salary)}
+                  </TableCell>
+                  <TableCell className="text-destructive hidden md:table-cell">
                     {formatDZD(p.absence_deduction)}
                   </TableCell>
                   <TableCell className="font-bold">

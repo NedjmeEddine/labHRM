@@ -30,7 +30,7 @@ function UserSettings() {
       </div>
 
       <Tabs defaultValue="company">
-        <TabsList>
+        <TabsList className="max-w-full overflow-x-auto flex-nowrap sm:flex-wrap h-auto gap-1 no-scrollbar [webkit-overflow-scrolling:touch]">
           <TabsTrigger value="company">{t("tabCompany")}</TabsTrigger>
           <TabsTrigger value="my-profile">{t("tabProfile")}</TabsTrigger>
           <TabsTrigger value="password">{t("tabPassword")}</TabsTrigger>

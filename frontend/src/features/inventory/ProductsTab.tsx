@@ -117,6 +117,7 @@ export function ProductsTab({
       {
         accessorKey: "reference_code",
         header: t("referenceCode"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => {
           const code = row.original.reference_code
           if (!code)
@@ -145,6 +146,7 @@ export function ProductsTab({
       {
         accessorKey: "category",
         header: t("type"),
+        meta: { className: "hidden md:table-cell" },
         cell: ({ row }) => (
           <Badge variant="outline" className="text-xs capitalize">
             {getProductCategoryLabel(row.original.category, t)}
@@ -154,6 +156,7 @@ export function ProductsTab({
       {
         accessorKey: "usual_supplier_name",
         header: t("usualSupplier"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => (
           <span className="text-xs text-muted-foreground">
             {row.original.usual_supplier_name || "—"}

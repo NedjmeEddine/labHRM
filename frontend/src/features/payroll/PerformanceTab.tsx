@@ -36,15 +36,19 @@ export function PerformanceTab({
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="-mx-3.5 px-3.5 sm:mx-0 sm:px-0 overflow-x-auto [webkit-overflow-scrolling:touch]">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("fullName")}</TableHead>
               <TableHead>{t("score")}</TableHead>
               <TableHead>{t("bonusAmount")}</TableHead>
-              <TableHead>{t("newSalary")}</TableHead>
-              <TableHead>{t("notes")}</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("newSalary")}
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t("notes")}
+              </TableHead>
               <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -76,10 +80,10 @@ export function PerformanceTab({
                   <TableCell className="font-semibold text-green-600">
                     +{formatDZD(r.bonus_amount)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {r.new_base_salary ? formatDZD(r.new_base_salary) : "—"}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  <TableCell className="text-xs text-muted-foreground hidden md:table-cell">
                     {r.notes || "—"}
                   </TableCell>
                   <TableCell className="text-right">

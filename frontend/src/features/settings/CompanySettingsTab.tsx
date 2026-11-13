@@ -73,7 +73,7 @@ function CompanySettingsForm({
       }}
       className="grid gap-4"
     >
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-1.5">
           <Label>{t("companyName")}</Label>
           <Input
@@ -106,7 +106,7 @@ function CompanySettingsForm({
         />
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-1.5">
           <Label>{t("phone")}</Label>
           <Input
@@ -128,7 +128,7 @@ function CompanySettingsForm({
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4 border-t pt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t pt-4">
         <div className="grid gap-1.5">
           <Label>{t("currency")}</Label>
           <Input

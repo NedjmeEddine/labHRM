@@ -84,24 +84,26 @@ export function PayslipsTab({
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="-mx-3.5 px-3.5 sm:mx-0 sm:px-0 overflow-x-auto [webkit-overflow-scrolling:touch]">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("fullName")}</TableHead>
-              <TableHead className="whitespace-normal">
+              <TableHead className="whitespace-normal hidden md:table-cell">
                 {t("baseSalary")}
               </TableHead>
-              <TableHead className="whitespace-normal">
+              <TableHead className="whitespace-normal hidden lg:table-cell">
                 {t("bonusAmount")}
               </TableHead>
-              <TableHead className="whitespace-normal">
+              <TableHead className="whitespace-normal hidden lg:table-cell">
                 {t("absenceDeduction")}
               </TableHead>
               <TableHead className="whitespace-normal">
                 {t("netSalary")}
               </TableHead>
-              <TableHead>{t("status")}</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("status")}
+              </TableHead>
               <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -122,18 +124,23 @@ export function PayslipsTab({
                       <div className="text-xs text-muted-foreground">
                         {ps.employee_code} · {ps.job_title}
                       </div>
+                      <div className="text-xs text-muted-foreground md:hidden mt-0.5">
+                        Base: {formatDZD(ps.base_salary)}
+                      </div>
                     </TableCell>
-                    <TableCell>{formatDZD(ps.base_salary)}</TableCell>
-                    <TableCell className="text-green-600 font-medium">
+                    <TableCell className="hidden md:table-cell">
+                      {formatDZD(ps.base_salary)}
+                    </TableCell>
+                    <TableCell className="text-green-600 font-medium hidden lg:table-cell">
                       +{formatDZD(ps.performance_bonus)}
                     </TableCell>
-                    <TableCell className="text-destructive">
+                    <TableCell className="text-destructive hidden lg:table-cell">
                       -{formatDZD(ps.absence_deduction + ps.other_deductions)}
                     </TableCell>
                     <TableCell className="font-bold text-brand">
                       {formatDZD(ps.net_salary)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant={statusDisplay.variant}>
                         {statusDisplay.label}
                       </Badge>

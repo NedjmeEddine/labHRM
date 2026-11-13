@@ -89,6 +89,7 @@ export function LotsTab() {
       {
         accessorKey: "received_date",
         header: t("receivedDate"),
+        meta: { className: "hidden md:table-cell" },
         cell: ({ row }) => (
           <span className="text-xs text-muted-foreground">
             {row.original.received_date}

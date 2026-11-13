@@ -165,7 +165,7 @@ function EmployeeDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="absences">
-        <TabsList className="flex-wrap h-auto">
+        <TabsList className="max-w-full overflow-x-auto flex-nowrap sm:flex-wrap h-auto gap-1 no-scrollbar [webkit-overflow-scrolling:touch]">
           <TabsTrigger value="absences" className="gap-1.5">
             <CalendarX className="h-4 w-4" />
             {t("navAttendance")} ({absences?.total_count ?? 0})

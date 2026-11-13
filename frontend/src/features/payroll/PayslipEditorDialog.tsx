@@ -101,7 +101,7 @@ function PayslipEditorBody({
       <div className="grid gap-6 md:grid-cols-12 py-2">
         {/* Editable Inputs */}
         <div className="md:col-span-7 grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1">
               <Label className="text-xs">{t("baseSalary")}</Label>
               <Input
@@ -132,7 +132,7 @@ function PayslipEditorBody({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1">
               <Label className="text-xs">{t("otherAllowances")}</Label>
               <Input
@@ -164,7 +164,7 @@ function PayslipEditorBody({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1">
               <Label className="text-xs">{t("absenceDays")}</Label>
               <Input
@@ -195,7 +195,7 @@ function PayslipEditorBody({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1">
               <Label className="text-xs">{t("otherDeductions")}</Label>
               <Input
@@ -226,7 +226,7 @@ function PayslipEditorBody({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1">
               <Label className="text-xs">{t("paymentMethod")}</Label>
               <Select

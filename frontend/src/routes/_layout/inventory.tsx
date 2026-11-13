@@ -135,7 +135,7 @@ function InventoryPage() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="suppliers" className="w-full">
-        <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/60 p-1 rounded-lg">
+        <TabsList className="max-w-full overflow-x-auto flex-nowrap sm:flex-wrap h-auto gap-1 bg-muted/60 p-1 rounded-lg no-scrollbar [webkit-overflow-scrolling:touch]">
           <TabsTrigger value="suppliers">{t("tabSuppliers")}</TabsTrigger>
           <TabsTrigger value="invoices">{t("tabInvoices")}</TabsTrigger>
           <TabsTrigger value="products">{t("tabProducts")}</TabsTrigger>

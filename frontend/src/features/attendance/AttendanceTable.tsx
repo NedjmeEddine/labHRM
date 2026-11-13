@@ -70,15 +70,17 @@ export function AttendanceTable({
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-md border">
+    <div className="-mx-3.5 px-3.5 sm:mx-0 sm:px-0 overflow-x-auto [webkit-overflow-scrolling:touch]">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{t("date")}</TableHead>
             <TableHead>{t("fullName")}</TableHead>
-            <TableHead>{t("type")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("type")}</TableHead>
             <TableHead>{t("paid")}</TableHead>
-            <TableHead>{t("reason")}</TableHead>
+            <TableHead className="hidden md:table-cell">
+              {t("reason")}
+            </TableHead>
             <TableHead className="text-right">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -91,8 +93,11 @@ export function AttendanceTable({
                 </TableCell>
                 <TableCell className="font-medium whitespace-nowrap">
                   {ab.employee_name}
+                  <div className="text-xs text-muted-foreground sm:hidden font-normal">
+                    {getAbsenceTypeLabel(ab.absence_type, t)}
+                  </div>
                 </TableCell>
-                <TableCell className="text-xs whitespace-nowrap">
+                <TableCell className="text-xs whitespace-nowrap hidden sm:table-cell">
                   {getAbsenceTypeLabel(ab.absence_type, t)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
@@ -101,7 +106,7 @@ export function AttendanceTable({
                   </Badge>
                 </TableCell>
                 <TableCell
-                  className="text-xs text-muted-foreground max-w-[130px] truncate"
+                  className="text-xs text-muted-foreground max-w-[130px] truncate hidden md:table-cell"
                   title={ab.reason ?? undefined}
                 >
                   {ab.reason || "—"}

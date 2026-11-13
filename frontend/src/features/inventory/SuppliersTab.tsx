@@ -91,6 +91,7 @@ export function SuppliersTab() {
       {
         accessorKey: "phone",
         header: t("phone"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => (
           <span className="text-xs">{row.original.phone || "—"}</span>
         ),
@@ -98,6 +99,7 @@ export function SuppliersTab() {
       {
         accessorKey: "tax_id",
         header: "NIF / RC",
+        meta: { className: "hidden md:table-cell" },
         cell: ({ row }) => (
           <span className="text-xs font-mono text-muted-foreground">
             {row.original.tax_id || row.original.trade_registry || "—"}
@@ -107,6 +109,7 @@ export function SuppliersTab() {
       {
         accessorKey: "total_invoiced",
         header: t("totalInvoiced"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => (
           <span className="text-xs font-medium">
             {formatDZD(Number(row.original.total_invoiced))}

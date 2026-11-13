@@ -96,15 +96,23 @@ function EmployeesPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="-mx-3.5 px-3.5 sm:mx-0 sm:px-0 overflow-x-auto [webkit-overflow-scrolling:touch]">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("empCode")}</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("empCode")}
+              </TableHead>
               <TableHead>{t("fullName")}</TableHead>
-              <TableHead>{t("jobTitle")}</TableHead>
-              <TableHead>{t("department")}</TableHead>
-              <TableHead>{t("baseSalary")}</TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t("jobTitle")}
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">
+                {t("department")}
+              </TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("baseSalary")}
+              </TableHead>
               <TableHead>{t("status")}</TableHead>
               <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
@@ -121,21 +129,28 @@ function EmployeesPage() {
                 const statusDisplay = getEmployeeStatusDisplay(emp.status, t)
                 return (
                   <TableRow key={emp.id}>
-                    <TableCell className="font-mono text-xs font-medium">
+                    <TableCell className="font-mono text-xs font-medium hidden sm:table-cell">
                       {emp.employee_code}
                     </TableCell>
                     <TableCell className="font-medium">
                       <Link
                         to="/employees/$employeeId"
                         params={{ employeeId: emp.id }}
-                        className="text-brand hover:underline"
+                        className="text-brand hover:underline font-semibold"
                       >
                         {emp.full_name}
                       </Link>
+                      <div className="text-xs text-muted-foreground sm:hidden mt-0.5">
+                        {emp.job_title} · {formatDZD(emp.base_salary)}
+                      </div>
                     </TableCell>
-                    <TableCell>{emp.job_title}</TableCell>
-                    <TableCell>{emp.department}</TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="hidden md:table-cell">
+                      {emp.job_title}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {emp.department}
+                    </TableCell>
+                    <TableCell className="font-medium hidden sm:table-cell">
                       {formatDZD(emp.base_salary)}
                     </TableCell>
                     <TableCell>

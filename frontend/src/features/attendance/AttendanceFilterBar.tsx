@@ -42,7 +42,7 @@ export function AttendanceFilterBar({
         <CardTitle className="text-base">{t("intervalChecker")}</CardTitle>
         <p className="text-xs text-muted-foreground">{t("intervalDesc")}</p>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-4 items-end">
+      <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-end">
         <div className="grid gap-1.5">
           <Label>{t("navEmployees")}</Label>
           <Select value={selectedEmployeeId} onValueChange={onEmployeeChange}>

@@ -33,17 +33,19 @@ export function VacationsTable({
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-md border">
+    <div className="-mx-3.5 px-3.5 sm:mx-0 sm:px-0 overflow-x-auto [webkit-overflow-scrolling:touch]">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{t("fullName")}</TableHead>
             <TableHead>{t("startDate")}</TableHead>
-            <TableHead>{t("endDate")}</TableHead>
+            <TableHead className="hidden sm:table-cell">
+              {t("endDate")}
+            </TableHead>
             <TableHead>{t("duration")}</TableHead>
-            <TableHead>{t("type")}</TableHead>
+            <TableHead className="hidden md:table-cell">{t("type")}</TableHead>
             <TableHead>{t("status")}</TableHead>
-            <TableHead>{t("notes")}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t("notes")}</TableHead>
             <TableHead className="text-right">{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -61,17 +63,20 @@ export function VacationsTable({
                 <TableRow key={vac.id}>
                   <TableCell className="font-medium">
                     {vac.employee_name}
+                    <div className="text-xs text-muted-foreground md:hidden font-normal mt-0.5">
+                      {getVacationTypeLabel(vac.vacation_type, t)}
+                    </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs">
                     {vac.start_date}
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
+                  <TableCell className="font-mono text-xs hidden sm:table-cell">
                     {vac.end_date}
                   </TableCell>
                   <TableCell>
                     {vac.days_count} {t("days")}
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs hidden md:table-cell">
                     {getVacationTypeLabel(vac.vacation_type, t)}
                   </TableCell>
                   <TableCell>
@@ -79,7 +84,7 @@ export function VacationsTable({
                       {statusDisplay.label}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                     {vac.notes || "—"}
                   </TableCell>
                   <TableCell className="text-right">

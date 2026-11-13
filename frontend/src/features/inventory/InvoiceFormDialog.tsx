@@ -237,7 +237,7 @@ export function InvoiceFormDialog({
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
           {/* Invoice Header Details */}
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="grid gap-1.5">
               <Label>{t("tabSuppliers")} *</Label>
               <Select value={supplierId} onValueChange={setSupplierId}>
@@ -275,7 +275,7 @@ export function InvoiceFormDialog({
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="grid gap-1.5">
               <Label>{t("dueDate")}</Label>
               <Input
@@ -547,7 +547,7 @@ export function InvoiceFormDialog({
           </div>
 
           {/* Paper scan upload */}
-          <div className="grid sm:grid-cols-2 gap-4 border-t pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-3">
             <div className="grid gap-1.5">
               <Label className="flex items-center gap-1.5">
                 <Upload className="h-4 w-4" />

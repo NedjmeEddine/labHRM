@@ -30,6 +30,7 @@ export function MovementsTab({
       {
         accessorKey: "movement_date",
         header: t("date"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => (
           <span className="font-mono text-xs">
             {row.original.movement_date}
@@ -94,6 +95,7 @@ export function MovementsTab({
       {
         accessorKey: "reason",
         header: t("reason"),
+        meta: { className: "hidden md:table-cell" },
         cell: ({ row }) => (
           <div className="text-xs">
             <div>{row.original.reason || "—"}</div>

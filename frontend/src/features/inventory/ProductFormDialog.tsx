@@ -111,7 +111,7 @@ export function ProductFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="prod-name-input">{t("productName")} *</Label>
               <Input
@@ -141,7 +141,7 @@ export function ProductFormDialog({
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-1.5">
               <Label>{t("type")} / Catégorie</Label>
               <Select
@@ -204,7 +204,7 @@ export function ProductFormDialog({
             </Select>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4 border-t pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-3">
             <div className="grid gap-1.5">
               <Label>{t("minStock")}</Label>
               <Input

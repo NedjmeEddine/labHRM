@@ -23,6 +23,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -47,75 +48,83 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #ffffff;
-  --foreground: #002d5a;
+  --background: #f8fafc;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #002d5a;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #002d5a;
+  --popover-foreground: #0f172a;
   --primary: #005696;
   --primary-foreground: #ffffff;
-  --secondary: #e6f1f8;
+  --secondary: #f0f5fa;
   --secondary-foreground: #002d5a;
-  --muted: #e6f1f8;
-  --muted-foreground: #3d5a76;
-  --accent: #e6f1f8;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+  --accent: #f0f5fa;
   --accent-foreground: #002d5a;
-  --destructive: #bd153a;
-  --border: #c7dcec;
-  --input: #c7dcec;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
   --ring: #005696;
   --chart-1: #005696;
-  --chart-2: #bd153a;
+  --chart-2: #e11d48;
   --chart-3: #002d5a;
-  --chart-4: #4d8fbf;
-  --chart-5: #8fbcd8;
+  --chart-4: #0284c7;
+  --chart-5: #38bdf8;
   --sidebar: #ffffff;
-  --sidebar-foreground: #002d5a;
+  --sidebar-foreground: #0f172a;
   --sidebar-primary: #005696;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e6f1f8;
+  --sidebar-accent: #f0f5fa;
   --sidebar-accent-foreground: #005696;
-  --sidebar-border: #c7dcec;
+  --sidebar-border: #e2e8f0;
   --sidebar-ring: #005696;
   --brand: #005696;
   --brand-deep: #002d5a;
-  --cta: #bd153a;
-  --mist: #e6f1f8;
+  --cta: #e11d48;
+  --mist: #eef5fb;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.65 0.10687 182.4689);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.65 0.10687 182.4689);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --radius: 0.625rem;
+  /* Soothing Medical Dark Palette (Eye-Friendly, Low Eye-Strain) */
+  --background: #0b132b;
+  --foreground: #f1f5f9;
+  --card: #142036;
+  --card-foreground: #f1f5f9;
+  --popover: #142036;
+  --popover-foreground: #f1f5f9;
+  --primary: #38bdf8;
+  --primary-foreground: #0b132b;
+  --secondary: #1a2744;
+  --secondary-foreground: #f1f5f9;
+  --muted: #142036;
+  --muted-foreground: #94a3b8;
+  --accent: #1e2d4a;
+  --accent-foreground: #f1f5f9;
+  --destructive: #fb7185;
+  --destructive-foreground: #ffffff;
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: #38bdf8;
+  --chart-1: #38bdf8;
+  --chart-2: #fb7185;
+  --chart-3: #818cf8;
+  --chart-4: #34d399;
+  --chart-5: #fbbf24;
+  --sidebar: #0e172f;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #0b132b;
+  --sidebar-accent: #17243e;
+  --sidebar-accent-foreground: #38bdf8;
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: #38bdf8;
+  --brand: #38bdf8;
+  --brand-deep: #0f172a;
+  --cta: #fb7185;
+  --mist: rgba(56, 189, 248, 0.12);
 }
 
 @layer base {
@@ -123,7 +132,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-foreground;
   }
   button,
   [role="button"] {
@@ -131,16 +140,193 @@
   }
 }
 
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================================================
+   ATTENDANCE CALENDAR (React Day Picker v10 Modern Styling)
+   ======================================================== */
 .rdp-root {
-  --rdp-accent-color: var(--brand);
-  --rdp-accent-background-color: var(--mist);
-  --rdp-range_middle-background-color: var(--mist);
-  --rdp-range_middle-color: var(--brand-deep);
+  --rdp-accent-color: #005696;
+  --rdp-accent-background-color: #e0f2fe;
+  --rdp-range_start-date-background-color: #005696;
+  --rdp-range_end-date-background-color: #005696;
+  --rdp-range_start-color: #ffffff;
+  --rdp-range_end-color: #ffffff;
+  --rdp-range_middle-background-color: #e0f2fe;
+  --rdp-range_middle-color: #0369a1;
+  --rdp-today-color: #005696;
+  --rdp-day-height: 42px;
+  --rdp-day-width: 42px;
+  --rdp-day_button-height: 38px;
+  --rdp-day_button-width: 38px;
+  --rdp-day_button-border-radius: 9999px;
+  --rdp-nav_button-height: 32px;
+  --rdp-nav_button-width: 32px;
 }
 
 .dark .rdp-root {
-  --rdp-accent-color: #3b82f6;
-  --rdp-accent-background-color: rgba(59, 130, 246, 0.2);
-  --rdp-range_middle-background-color: rgba(59, 130, 246, 0.15);
-  --rdp-range_middle-color: #e2e8f0;
+  --rdp-accent-color: #38bdf8;
+  --rdp-accent-background-color: rgba(56, 189, 248, 0.16);
+  --rdp-range_start-date-background-color: #38bdf8;
+  --rdp-range_end-date-background-color: #38bdf8;
+  --rdp-range_start-color: #0b132b;
+  --rdp-range_end-color: #0b132b;
+  --rdp-range_middle-background-color: rgba(56, 189, 248, 0.15);
+  --rdp-range_middle-color: #f1f5f9;
+  --rdp-today-color: #38bdf8;
+}
+
+/* Month Grid & Spacing */
+.rdp-month_grid {
+  border-collapse: separate;
+  border-spacing: 0 4px;
+}
+
+.rdp-day {
+  width: 42px;
+  height: 42px;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  padding: 0;
+}
+
+.rdp-day_button {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.rdp-day_button:hover:not(:disabled) {
+  background-color: rgba(56, 189, 248, 0.15);
+}
+
+/* Range Middle Track - Smooth connected pill with rounded ends */
+.rdp-range_middle {
+  background-color: var(--rdp-range_middle-background-color);
+}
+
+.rdp-range_middle:first-child,
+.rdp-range_start {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+}
+
+.rdp-range_middle:last-child,
+.rdp-range_end {
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+}
+
+.rdp-range_middle .rdp-day_button {
+  color: var(--rdp-range_middle-color);
+  font-weight: 600;
+}
+
+/* Range Start & End Buttons */
+.rdp-range_start,
+.rdp-range_end {
+  background-color: transparent;
+}
+
+.rdp-range_start .rdp-day_button,
+.rdp-range_end .rdp-day_button {
+  background-color: var(--rdp-accent-color);
+  color: var(--rdp-range_start-color);
+  font-weight: 700;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Absence & Vacation Markers (Light Mode) */
+.rdp-day.mod-vacation .rdp-day_button {
+  border: 2px solid #059669;
+  background-color: #d1fae5;
+  color: #065f46;
+  font-weight: 700;
+}
+.rdp-day.mod-paid .rdp-day_button {
+  border: 2px solid #d97706;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+}
+.rdp-day.mod-unpaid .rdp-day_button {
+  border: 2px solid #e11d48;
+  background-color: #ffe4e6;
+  color: #9f1239;
+  font-weight: 700;
+}
+
+/* Absence & Vacation Markers (Dark Mode) */
+.dark .rdp-day.mod-vacation .rdp-day_button {
+  border: 2px solid #34d399;
+  background-color: rgba(5, 150, 105, 0.35);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.35);
+}
+.dark .rdp-day.mod-paid .rdp-day_button {
+  border: 2px solid #fbbf24;
+  background-color: rgba(217, 119, 6, 0.35);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+}
+.dark .rdp-day.mod-unpaid .rdp-day_button {
+  border: 2px solid #fb7185;
+  background-color: rgba(225, 29, 72, 0.35);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(251, 113, 133, 0.35);
+}
+
+/* Today indicator */
+.rdp-today:not(.rdp-range_start):not(.rdp-range_end) .rdp-day_button {
+  border-color: var(--rdp-today-color);
+  font-weight: 700;
+}
+
+/* Navigation buttons (chevrons) */
+.rdp-button_next,
+.rdp-button_previous {
+  border-radius: 9999px;
+  transition: all 0.15s ease;
+}
+.rdp-button_next:hover:not(:disabled),
+.rdp-button_previous:hover:not(:disabled) {
+  background-color: rgba(56, 189, 248, 0.15);
+}
+.rdp-chevron {
+  fill: currentColor;
 }

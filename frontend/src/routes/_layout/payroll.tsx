@@ -151,7 +151,7 @@ function PayrollPage() {
       </div>
 
       <Tabs defaultValue="payslips">
-        <TabsList>
+        <TabsList className="max-w-full overflow-x-auto flex-nowrap sm:flex-wrap h-auto gap-1 no-scrollbar [webkit-overflow-scrolling:touch]">
           <TabsTrigger value="payslips">{t("tabPayslips")}</TabsTrigger>
           <TabsTrigger value="performance">{t("tabPerformance")}</TabsTrigger>
         </TabsList>

@@ -79,6 +79,7 @@ export function InvoicesTab({
       {
         accessorKey: "invoice_date",
         header: t("invoiceDate"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => (
           <div className="text-xs font-medium">
             {row.original.invoice_date}
@@ -126,6 +127,7 @@ export function InvoicesTab({
       {
         accessorKey: "total_incl_tax",
         header: t("totalInclTax"),
+        meta: { className: "hidden sm:table-cell" },
         cell: ({ row }) => (
           <div className="text-right">
             <div className="text-xs font-bold font-mono text-foreground">
