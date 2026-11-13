@@ -131,3 +131,44 @@ def test_employee_salary_history_and_cascade_delete(
         f"{settings.API_V1_STR}/absences/?employee_id={emp_id}", headers=auth_headers
     )
     assert ab_list.json()["total_count"] == 0
+
+
+def test_employee_code_validation_and_enum_rejection(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    e1 = client.post(
+        f"{settings.API_V1_STR}/employees/",
+        json={
+            "full_name": "Karim Zemmouri",
+            "job_title": "Biologiste",
+            "department": "Lab",
+            "hire_date": "2025-01-10",
+            "base_salary": 50000.0,
+        },
+        headers=auth_headers,
+    )
+    assert e1.status_code == 200
+    emp_id = e1.json()["id"]
+
+    # Reject empty/whitespace employee_code on PATCH
+    empty_code = client.patch(
+        f"{settings.API_V1_STR}/employees/{emp_id}",
+        json={"employee_code": "   "},
+        headers=auth_headers,
+    )
+    assert empty_code.status_code == 400
+
+    # Reject invalid status enum
+    bad_status = client.post(
+        f"{settings.API_V1_STR}/employees/",
+        json={
+            "full_name": "Test Invalid",
+            "job_title": "Biologiste",
+            "department": "Lab",
+            "hire_date": "2025-01-10",
+            "base_salary": 50000.0,
+            "status": "invalid_status",
+        },
+        headers=auth_headers,
+    )
+    assert bad_status.status_code == 422

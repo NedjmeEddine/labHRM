@@ -1,4 +1,13 @@
-import { createContext, type ReactNode, useContext, useState } from "react"
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react"
+
+import { getStorageItem, STORAGE_KEYS, setStorageItem } from "@/lib/storage"
 
 export type Lang = "fr" | "en"
 
@@ -10,6 +19,7 @@ const translations = {
     navAttendance: "Absences & Calendrier",
     navVacations: "Congés",
     navPayroll: "Paie & Performance",
+    navInventory: "Fournisseurs & Stock",
     navSettings: "Paramètres",
     adminPortal: "Portail Administrateur",
     loginSubtitle: "Connectez-vous pour gérer EL-AMEL LAB",
@@ -18,9 +28,13 @@ const translations = {
     loginButton: "Se connecter",
     logout: "Déconnexion",
     appearance: "Apparence",
+    themeLight: "Clair",
+    themeDark: "Sombre",
+    themeSystem: "Système",
+    toggleTheme: "Changer de thème",
     thisMonth: "Ce mois",
 
-    // Common
+    // Common & Generic Errors
     search: "Rechercher...",
     add: "Ajouter",
     edit: "Modifier",
@@ -30,6 +44,7 @@ const translations = {
     saving: "Enregistrement...",
     actions: "Actions",
     status: "Statut",
+    type: "Type",
     notes: "Notes / Observations",
     reason: "Motif",
     date: "Date",
@@ -43,11 +58,35 @@ const translations = {
     downloadPdf: "Télécharger PDF",
     previewPdf: "Aperçu PDF",
     noData: "Aucune donnée disponible",
+    noResults: "Aucun résultat trouvé.",
     confirmDelete: "Confirmer la suppression ?",
     confirmDeleteDesc: "Cette action est irréversible.",
     days: "jours",
     day: "jour",
     currency: "DZD",
+    errorTitle: "Erreur",
+    oops: "Oups !",
+    somethingWentWrong: "Une erreur est survenue. Veuillez réessayer.",
+    notFoundMessage: "La page que vous recherchez est introuvable.",
+    goHome: "Retour à l'accueil",
+    goBack: "Retour",
+    showingEntries: "Affichage",
+    to: "à",
+    of: "sur",
+    entries: "entrées",
+    rowsPerPage: "Lignes par page",
+    page: "Page",
+    firstPage: "Première page",
+    previousPage: "Page précédente",
+    nextPage: "Page suivante",
+    lastPage: "Dernière page",
+
+    // Validation
+    invalidEmail: "Adresse email invalide",
+    passwordRequired: "Le mot de passe est requis",
+    passwordMinLength: "Le mot de passe doit contenir au moins 8 caractères",
+    confirmPasswordRequired: "La confirmation du mot de passe est requise",
+    passwordsMismatch: "Les mots de passe ne correspondent pas",
 
     // Status labels
     statusActive: "Actif",
@@ -110,6 +149,8 @@ const translations = {
     vacationAllowance: "Jours de congé / an",
     cnasNumber: "N° Sécurité Sociale (CNAS)",
     salaryChangeReason: "Motif de modification du salaire",
+    salaryChangeReasonPlaceholder: "Ex: Augmentation annuelle / Promotion",
+    contactAndCnas: "Contact & CNAS",
     viewProfile: "Voir le dossier",
     salaryProgression: "Historique des salaires",
     previousSalary: "Ancien salaire",
@@ -142,6 +183,7 @@ const translations = {
     noEventsDay: "Aucune absence ni congé enregistré pour cette date.",
     clickDayHint:
       "Cliquez sur une date du calendrier pour voir ou marquer une absence.",
+    unpaidWithDeduction: "Non payée (retenue)",
 
     // Vacations
     vacTitle: "Gestion des congés",
@@ -163,6 +205,8 @@ const translations = {
     score: "Note (1 à 5)",
     bonusAmount: "Prime de performance (DZD)",
     updateBaseSalaryOpt: "Nouveau salaire de base permanent (optionnel)",
+    updateBaseSalaryPlaceholder:
+      "Laisser vide pour ne pas modifier le salaire de base",
     generateBatch: "Générer tout le mois",
     generateSingle: "Générer un bulletin",
     overwriteDraft: "Recalculer depuis les absences/primes",
@@ -170,6 +214,11 @@ const translations = {
     payslipEditorTitle: "Éditeur de Bulletin de Paie",
     payslipEditorDesc:
       "Les montants sont pré-remplis depuis la base de données. Modifiez librement avant de télécharger le PDF.",
+    payslipPreviewTitle: "Bulletin de Paie (Aperçu)",
+    payslipPreviewBase: "Salaire de base",
+    payslipPreviewBonus: "Prime perf.",
+    payslipPreviewAllowances: "Indemnités + HS",
+    payslipPreviewDeductions: "Retenues",
     otherAllowances: "Autres indemnités (Transport, Panier...)",
     overtimePay: "Heures supplémentaires (DZD)",
     absenceDays: "Jours d'absence non payés",
@@ -182,7 +231,7 @@ const translations = {
     paymentMethod: "Mode de paiement",
     markAsPaid: "Marquer comme Payé",
 
-    // Settings
+    // Settings & Profile
     settingsTitle: "Paramètres",
     settingsSubtitle:
       "Configurez l'entreprise, les règles de paie et votre compte administrateur",
@@ -194,6 +243,121 @@ const translations = {
     taxId: "NIF / RC / Identifiant fiscal",
     workingDaysMonth: "Jours ouvrables / mois (calcul retenues)",
     defaultVacDays: "Congé annuel par défaut (jours)",
+    userInformation: "Informations du profil",
+    changePassword: "Changer le mot de passe",
+    currentPassword: "Mot de passe actuel",
+    newPassword: "Nouveau mot de passe",
+    confirmPassword: "Confirmer le mot de passe",
+    updatePassword: "Mettre à jour le mot de passe",
+    backupTitle: "Sauvegarde de la base de données",
+    backupDescription:
+      "Téléchargez une copie complète et cohérente de la base SQLite (.db) pour vos archives.",
+    downloadBackup: "Télécharger sauvegarde (.db)",
+    notAvailable: "N/D",
+
+    // Toasts
+    toastSuccessTitle: "Succès",
+    toastErrorTitle: "Erreur",
+    toastSaveError: "Erreur lors de l'enregistrement",
+    toastEmployeeCreated: "Employé ajouté",
+    toastEmployeeUpdated: "Employé mis à jour",
+    toastEmployeeDeleted: "Employé supprimé",
+    toastAbsenceSaved: "Absence enregistrée",
+    toastAbsenceDeleted: "Absence supprimée",
+    toastVacationSaved: "Congé enregistré",
+    toastVacationUpdated: "Statut du congé mis à jour",
+    toastVacationDeleted: "Congé supprimé",
+    toastPayslipsBatchGenerated: "bulletins générés / mis à jour",
+    toastPayslipReadyFor: "Bulletin prêt pour",
+    toastPayslipSaved: "Bulletin enregistré",
+    toastPayslipDeleted: "Bulletin supprimé",
+    toastReviewSaved: "Évaluation enregistrée",
+    toastReviewDeleted: "Évaluation supprimée",
+    toastSettingsSaved: "Paramètres enregistrés",
+    toastBackupDownloaded: "Sauvegarde téléchargée",
+    toastUserUpdated: "Profil mis à jour avec succès",
+    toastPasswordUpdated: "Mot de passe mis à jour avec succès",
+    toastExportError: "Erreur lors du téléchargement du fichier",
+
+    // Suppliers & Inventory
+    inventoryTitle: "Gestion des Fournisseurs & Stocks",
+    inventorySubtitle:
+      "Suivez les comptes fournisseurs, factures d'achats avec TVA et stocks de réactifs",
+    tabSuppliers: "Fournisseurs",
+    tabInvoices: "Factures d'Achats",
+    tabProducts: "Produits & Réactifs",
+    tabLots: "Lots & Péremptions",
+    tabMovements: "Mouvements de Stock",
+    catReagent: "Réactif Biologique",
+    catConsumable: "Consommable",
+    catEquipment: "Équipement",
+    catOther: "Autre",
+    invoiceNumber: "N° Facture",
+    invoiceDate: "Date Facture",
+    dueDate: "Date d'Échéance",
+    totalExclTax: "Total HT",
+    totalTva: "Total TVA",
+    totalInclTax: "Total TTC",
+    statedTotal: "Total Annoncé Fournisseur",
+    warningTotalMismatch:
+      "Attention : Le total annoncé par le fournisseur diffère du total calculé.",
+    invoiceConfirmed: "Confirmée",
+    invoiceDraft: "Brouillon",
+    invoiceCancelled: "Annulée",
+    payStatusPaid: "Payée",
+    payStatusPartial: "Partielle",
+    payStatusUnpaid: "Non Payée",
+    recordPayment: "Enregistrer Paiement",
+    uploadScan: "Joindre Scan / Photo",
+    viewScan: "Voir Scan",
+    newInvoice: "Nouvelle Facture",
+    isCreditNote: "Facture d'Avoir (Retour / Remise)",
+    newSupplier: "Nouveau Fournisseur",
+    supplierName: "Nom du Fournisseur",
+    contactPerson: "Personne de Contact",
+    paymentTerms: "Conditions de Règlement",
+    totalInvoiced: "Total Facturé",
+    totalPaid: "Total Payé",
+    balanceOwed: "Solde Dû",
+    downloadStatementPdf: "Relevé de Compte (PDF)",
+    downloadStatementCsv: "Relevé de Compte (CSV)",
+    newProduct: "Nouveau Produit",
+    productName: "Désignation Produit",
+    referenceCode: "Référence (Code / SKU)",
+    unit: "Unité",
+    usualSupplier: "Fournisseur Habituel",
+    trackLots: "Suivre par N° de Lot",
+    minStock: "Seuil Minimum (Alerte)",
+    storageLocation: "Emplacement de Stockage",
+    currentStock: "Stock Actuel",
+    lotNumber: "N° de Lot",
+    expirationDate: "Date de Péremption",
+    receivedDate: "Date de Réception",
+    daysLeft: "Jours Restants",
+    expired: "Périmé",
+    movementIn: "Entrée (IN)",
+    movementOut: "Sortie (OUT)",
+    movementAdjustment: "Ajustement",
+    manualStockMovement: "Nouveau Mouvement Manuel",
+    priceHistory: "Historique des Prix d'Achat",
+    totalDebtOwed: "Dette Fournisseurs Globale",
+    invoicesDueSoon: "Factures Échues dans 7 jours",
+    monthlySpending: "Dépenses Achats par Mois",
+    toggleInventoryTracking: "Activer le suivi des stocks et lots (Phase B)",
+    toggleManualStockOut: "Activer les sorties de stock manuelles (Phase C)",
+    defaultExpiryAlertDays: "Délai d'alerte péremption (Jours)",
+    toastSupplierCreated: "Fournisseur ajouté avec succès",
+    toastSupplierUpdated: "Fournisseur mis à jour",
+    toastSupplierDeleted: "Fournisseur archivé",
+    toastProductCreated: "Produit ajouté avec succès",
+    toastProductUpdated: "Produit mis à jour",
+    toastProductDeleted: "Produit archivé",
+    toastInvoiceCreated: "Facture enregistrée avec succès",
+    toastInvoiceUpdated: "Facture mise à jour",
+    toastPaymentRecorded: "Paiement enregistré",
+    toastScanUploaded: "Scan de facture téléversé",
+    toastMovementRecorded: "Mouvement de stock enregistré",
+    toastLotCreated: "Lot créé avec succès",
   },
   en: {
     // Nav & Layout
@@ -202,6 +366,7 @@ const translations = {
     navAttendance: "Absences & Calendar",
     navVacations: "Vacations",
     navPayroll: "Payroll & Performance",
+    navInventory: "Suppliers & Stock",
     navSettings: "Settings",
     adminPortal: "Admin Portal",
     loginSubtitle: "Sign in to manage EL-AMEL LAB",
@@ -210,9 +375,13 @@ const translations = {
     loginButton: "Log In",
     logout: "Log Out",
     appearance: "Appearance",
+    themeLight: "Light",
+    themeDark: "Dark",
+    themeSystem: "System",
+    toggleTheme: "Toggle theme",
     thisMonth: "This Month",
 
-    // Common
+    // Common & Generic Errors
     search: "Search...",
     add: "Add",
     edit: "Edit",
@@ -222,6 +391,7 @@ const translations = {
     saving: "Saving...",
     actions: "Actions",
     status: "Status",
+    type: "Type",
     notes: "Notes",
     reason: "Reason",
     date: "Date",
@@ -235,11 +405,35 @@ const translations = {
     downloadPdf: "Download PDF",
     previewPdf: "Preview PDF",
     noData: "No data available",
+    noResults: "No results found.",
     confirmDelete: "Confirm deletion?",
     confirmDeleteDesc: "This action cannot be undone.",
     days: "days",
     day: "day",
     currency: "DZD",
+    errorTitle: "Error",
+    oops: "Oops!",
+    somethingWentWrong: "Something went wrong. Please try again.",
+    notFoundMessage: "The page you are looking for was not found.",
+    goHome: "Go Home",
+    goBack: "Go Back",
+    showingEntries: "Showing",
+    to: "to",
+    of: "of",
+    entries: "entries",
+    rowsPerPage: "Rows per page",
+    page: "Page",
+    firstPage: "Go to first page",
+    previousPage: "Go to previous page",
+    nextPage: "Go to next page",
+    lastPage: "Go to last page",
+
+    // Validation
+    invalidEmail: "Invalid email address",
+    passwordRequired: "Password is required",
+    passwordMinLength: "Password must be at least 8 characters",
+    confirmPasswordRequired: "Password confirmation is required",
+    passwordsMismatch: "The passwords don't match",
 
     // Status labels
     statusActive: "Active",
@@ -302,6 +496,8 @@ const translations = {
     vacationAllowance: "Annual Vacation Days",
     cnasNumber: "Social Security (CNAS)",
     salaryChangeReason: "Salary Change Reason",
+    salaryChangeReasonPlaceholder: "e.g. Annual raise / Promotion",
+    contactAndCnas: "Contact & CNAS",
     viewProfile: "View Profile",
     salaryProgression: "Salary Progression History",
     previousSalary: "Previous Salary",
@@ -333,6 +529,7 @@ const translations = {
     noEventsDay: "No absences or vacations recorded on this date.",
     clickDayHint:
       "Click any date on the calendar to inspect or mark an absence.",
+    unpaidWithDeduction: "Unpaid (deducted)",
 
     // Vacations
     vacTitle: "Vacation Management",
@@ -353,6 +550,7 @@ const translations = {
     score: "Score (1 to 5)",
     bonusAmount: "Performance Bonus (DZD)",
     updateBaseSalaryOpt: "New permanent base salary (optional)",
+    updateBaseSalaryPlaceholder: "Leave empty to keep current base salary",
     generateBatch: "Generate All for Month",
     generateSingle: "Generate Single Draft",
     overwriteDraft: "Recalculate from DB",
@@ -360,6 +558,11 @@ const translations = {
     payslipEditorTitle: "Payslip Editor",
     payslipEditorDesc:
       "Pre-filled from attendance & performance records. Modify any field before generating PDF.",
+    payslipPreviewTitle: "Payslip Preview",
+    payslipPreviewBase: "Base Salary",
+    payslipPreviewBonus: "Perf. Bonus",
+    payslipPreviewAllowances: "Allowances + OT",
+    payslipPreviewDeductions: "Deductions",
     otherAllowances: "Other Allowances (Transport, Meals...)",
     overtimePay: "Overtime Pay (DZD)",
     absenceDays: "Unpaid Absence Days",
@@ -372,7 +575,7 @@ const translations = {
     paymentMethod: "Payment Method",
     markAsPaid: "Mark as Paid",
 
-    // Settings
+    // Settings & Profile
     settingsTitle: "Settings",
     settingsSubtitle:
       "Configure company details, payroll rules, and administrator account",
@@ -384,39 +587,159 @@ const translations = {
     taxId: "Tax ID / NIF / RC",
     workingDaysMonth: "Working Days / Month (for absence rate)",
     defaultVacDays: "Default Annual Vacation (days)",
+    userInformation: "User Information",
+    changePassword: "Change Password",
+    currentPassword: "Current Password",
+    newPassword: "New Password",
+    confirmPassword: "Confirm Password",
+    updatePassword: "Update Password",
+    backupTitle: "Database Backup",
+    backupDescription:
+      "Download a complete, WAL-consistent copy of the SQLite database (.db) for safekeeping.",
+    downloadBackup: "Download Backup (.db)",
+    notAvailable: "N/A",
+
+    // Toasts
+    toastSuccessTitle: "Success",
+    toastErrorTitle: "Error",
+    toastSaveError: "Failed to save changes",
+    toastEmployeeCreated: "Employee added",
+    toastEmployeeUpdated: "Employee updated",
+    toastEmployeeDeleted: "Employee deleted",
+    toastAbsenceSaved: "Absence saved",
+    toastAbsenceDeleted: "Absence deleted",
+    toastVacationSaved: "Vacation saved",
+    toastVacationUpdated: "Vacation status updated",
+    toastVacationDeleted: "Vacation deleted",
+    toastPayslipsBatchGenerated: "payslips generated / updated",
+    toastPayslipReadyFor: "Payslip ready for",
+    toastPayslipSaved: "Payslip saved",
+    toastPayslipDeleted: "Payslip deleted",
+    toastReviewSaved: "Evaluation saved",
+    toastReviewDeleted: "Evaluation deleted",
+    toastSettingsSaved: "Settings saved",
+    toastBackupDownloaded: "Backup downloaded",
+    toastUserUpdated: "User updated successfully",
+    toastPasswordUpdated: "Password updated successfully",
+    toastExportError: "Failed to download file",
+
+    // Suppliers & Inventory
+    inventoryTitle: "Suppliers & Inventory Management",
+    inventorySubtitle:
+      "Track supplier accounts, purchase invoices with VAT, and lab reagents & supplies",
+    tabSuppliers: "Suppliers",
+    tabInvoices: "Purchase Invoices",
+    tabProducts: "Products & Reagents",
+    tabLots: "Lots & Expiration",
+    tabMovements: "Stock Movements",
+    catReagent: "Biological Reagent",
+    catConsumable: "Consumable",
+    catEquipment: "Equipment",
+    catOther: "Other",
+    invoiceNumber: "Invoice Number",
+    invoiceDate: "Invoice Date",
+    dueDate: "Due Date",
+    totalExclTax: "Total Excl. Tax",
+    totalTva: "Total VAT",
+    totalInclTax: "Total Incl. Tax",
+    statedTotal: "Supplier Stated Total",
+    warningTotalMismatch:
+      "Warning: Supplier stated total differs from computed lines.",
+    invoiceConfirmed: "Confirmed",
+    invoiceDraft: "Draft",
+    invoiceCancelled: "Cancelled",
+    payStatusPaid: "Paid",
+    payStatusPartial: "Partial",
+    payStatusUnpaid: "Unpaid",
+    recordPayment: "Record Payment",
+    uploadScan: "Attach Scan / Paper invoice",
+    viewScan: "View Scan",
+    newInvoice: "New Invoice",
+    isCreditNote: "Credit Note (Return / Discount)",
+    newSupplier: "New Supplier",
+    supplierName: "Supplier Name",
+    contactPerson: "Contact Person",
+    paymentTerms: "Payment Terms",
+    totalInvoiced: "Total Invoiced",
+    totalPaid: "Total Paid",
+    balanceOwed: "Balance Owed",
+    downloadStatementPdf: "Statement of Account (PDF)",
+    downloadStatementCsv: "Statement of Account (CSV)",
+    newProduct: "New Product",
+    productName: "Product Name",
+    referenceCode: "Reference (SKU / Code)",
+    unit: "Unit",
+    usualSupplier: "Usual Supplier",
+    trackLots: "Track by Lot Number",
+    minStock: "Minimum Stock Threshold",
+    storageLocation: "Storage Location",
+    currentStock: "Current Stock",
+    lotNumber: "Lot Number",
+    expirationDate: "Expiration Date",
+    receivedDate: "Received Date",
+    daysLeft: "Days Left",
+    expired: "Expired",
+    movementIn: "Stock In (IN)",
+    movementOut: "Stock Out (OUT)",
+    movementAdjustment: "Adjustment",
+    manualStockMovement: "New Manual Movement",
+    priceHistory: "Purchase Price History",
+    totalDebtOwed: "Total Supplier Debt",
+    invoicesDueSoon: "Invoices Due in 7 Days",
+    monthlySpending: "Monthly Purchasing Spend",
+    toggleInventoryTracking: "Enable stock & lots tracking (Phase B)",
+    toggleManualStockOut: "Enable manual stock out (Phase C)",
+    defaultExpiryAlertDays: "Expiration alert threshold (Days)",
+    toastSupplierCreated: "Supplier created successfully",
+    toastSupplierUpdated: "Supplier updated",
+    toastSupplierDeleted: "Supplier archived",
+    toastProductCreated: "Product created successfully",
+    toastProductUpdated: "Product updated",
+    toastProductDeleted: "Product archived",
+    toastInvoiceCreated: "Invoice created successfully",
+    toastInvoiceUpdated: "Invoice updated",
+    toastPaymentRecorded: "Payment recorded",
+    toastScanUploaded: "Invoice scan uploaded",
+    toastMovementRecorded: "Stock movement recorded",
+    toastLotCreated: "Lot created successfully",
   },
 } as const
 
 export type TranslationKey = keyof typeof translations.fr
+export type TranslateFn = (key: TranslationKey) => string
 
 interface I18nContextValue {
   lang: Lang
   setLang: (lang: Lang) => void
-  t: (key: TranslationKey) => string
+  t: TranslateFn
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const saved = localStorage.getItem("elamel_lang")
+    const saved = getStorageItem(STORAGE_KEYS.language)
     return saved === "en" || saved === "fr" ? saved : "fr"
   })
 
-  const setLang = (next: Lang) => {
-    localStorage.setItem("elamel_lang", next)
+  const setLang = useCallback((next: Lang) => {
+    setStorageItem(STORAGE_KEYS.language, next)
     setLangState(next)
-  }
+  }, [])
 
-  const t = (key: TranslationKey): string => {
-    return translations[lang][key] ?? translations.en[key] ?? key
-  }
-
-  return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </I18nContext.Provider>
+  const t = useCallback<TranslateFn>(
+    (key) => {
+      return translations[lang][key] ?? translations.en[key] ?? key
+    },
+    [lang],
   )
+
+  const value = useMemo<I18nContextValue>(
+    () => ({ lang, setLang, t }),
+    [lang, setLang, t],
+  )
+
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
 export function useTranslation() {

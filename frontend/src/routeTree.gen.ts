@@ -13,6 +13,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAttendanceRouteImport } from './routes/_layout/attendance'
+import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutPayrollRouteImport } from './routes/_layout/payroll'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutVacationsRouteImport } from './routes/_layout/vacations'
@@ -36,6 +37,11 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
 const LayoutAttendanceRoute = LayoutAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInventoryRoute = LayoutInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutPayrollRoute = LayoutPayrollRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/login': typeof LoginRoute
   '/attendance': typeof LayoutAttendanceRoute
+  '/inventory': typeof LayoutInventoryRoute
   '/payroll': typeof LayoutPayrollRoute
   '/settings': typeof LayoutSettingsRoute
   '/vacations': typeof LayoutVacationsRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/attendance': typeof LayoutAttendanceRoute
+  '/inventory': typeof LayoutInventoryRoute
   '/payroll': typeof LayoutPayrollRoute
   '/settings': typeof LayoutSettingsRoute
   '/vacations': typeof LayoutVacationsRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
   '/_layout/attendance': typeof LayoutAttendanceRoute
+  '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/payroll': typeof LayoutPayrollRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/vacations': typeof LayoutVacationsRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/attendance'
+    | '/inventory'
     | '/payroll'
     | '/settings'
     | '/vacations'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/attendance'
+    | '/inventory'
     | '/payroll'
     | '/settings'
     | '/vacations'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/_layout'
     | '/login'
     | '/_layout/attendance'
+    | '/_layout/inventory'
     | '/_layout/payroll'
     | '/_layout/settings'
     | '/_layout/vacations'
@@ -166,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAttendanceRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/inventory': {
+      id: '/_layout/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof LayoutInventoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/payroll': {
       id: '/_layout/payroll'
       path: '/payroll'
@@ -206,6 +225,7 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteChildren {
   LayoutAttendanceRoute: typeof LayoutAttendanceRoute
+  LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutPayrollRoute: typeof LayoutPayrollRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutVacationsRoute: typeof LayoutVacationsRoute
@@ -216,6 +236,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAttendanceRoute: LayoutAttendanceRoute,
+  LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutPayrollRoute: LayoutPayrollRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutVacationsRoute: LayoutVacationsRoute,

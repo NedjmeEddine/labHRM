@@ -117,3 +117,35 @@ def test_vacation_creation_overlap_and_cross_year_balance(
     assert bal_after.json()["days_pending"] == 0
     assert bal_after.json()["days_taken"] == 10
     assert bal_after.json()["days_remaining"] == 20
+
+    # Reject PATCH shifting non-overlapping vacation onto an existing vacation
+    v_other = client.post(
+        f"{settings.API_V1_STR}/vacations/",
+        json={
+            "employee_id": emp_id,
+            "start_date": "2026-09-01",
+            "end_date": "2026-09-03",
+            "vacation_type": "annual",
+            "status": "approved",
+        },
+        headers=auth_headers,
+    )
+    assert v_other.status_code == 200
+    other_id = v_other.json()["id"]
+
+    bad_shift = client.patch(
+        f"{settings.API_V1_STR}/vacations/{other_id}",
+        json={"start_date": "2026-11-11", "end_date": "2026-11-13"},
+        headers=auth_headers,
+    )
+    assert bad_shift.status_code == 400
+
+    # Batch balances endpoint returns accurate totals (10 + 3 = 13 taken in 2026)
+    batch_bal = client.get(
+        f"{settings.API_V1_STR}/vacations/balances?year=2026",
+        headers=auth_headers,
+    )
+    assert batch_bal.status_code == 200
+    assert len(batch_bal.json()) == 1
+    assert batch_bal.json()[0]["days_taken"] == 13
+    assert batch_bal.json()[0]["days_remaining"] == 17

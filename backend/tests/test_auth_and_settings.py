@@ -109,3 +109,33 @@ def test_company_settings_defaults_and_update(
     assert upd.status_code == 200
     assert upd.json()["address"] == "12 Rue Didouche Mourad, Alger"
     assert upd.json()["working_days_per_month"] == 26
+
+
+def test_sqlite_backup_download_and_cors_tauri_origin(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    backup = client.get(f"{settings.API_V1_STR}/settings/backup", headers=auth_headers)
+    assert backup.status_code == 200
+    assert ".db" in backup.headers["content-disposition"]
+    assert backup.content[:16] == b"SQLite format 3\x00"
+
+    cors = client.options(
+        f"{settings.API_V1_STR}/utils/health-check/",
+        headers={
+            "Origin": "http://tauri.localhost",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert cors.status_code == 200
+    assert cors.headers.get("access-control-allow-origin") == "*"
+    assert "access-control-allow-credentials" not in cors.headers
+
+
+def test_secret_key_auto_generation_persistence(tmp_path) -> None:
+    from app.core.config import load_or_create_secret_key
+
+    first = load_or_create_secret_key(tmp_path)
+    second = load_or_create_secret_key(tmp_path)
+    assert len(first) == 64
+    assert first == second
+    assert (tmp_path / ".secret_key").is_file()

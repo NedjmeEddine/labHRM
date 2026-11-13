@@ -5,19 +5,21 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import col, select
 
-from app import crud
 from app.api.deps import SessionDep, get_current_user
 from app.models import (
     Employee,
     EmployeeCreate,
     EmployeePublic,
     EmployeesPublic,
+    EmployeeStatus,
     EmployeeUpdate,
     Message,
     SalaryHistory,
     SalaryHistoryPublic,
     VacationBalance,
 )
+from app.services import employees as employee_service
+from app.services import vacations as vacation_service
 
 router = APIRouter(
     prefix="/employees",
@@ -29,26 +31,13 @@ router = APIRouter(
 @router.get("/", response_model=EmployeesPublic)
 def read_employees(
     session: SessionDep,
-    status: Annotated[str | None, Query()] = None,
+    status: Annotated[EmployeeStatus | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
 ) -> EmployeesPublic:
     """List all employees with optional status and text search."""
-    stmt = select(Employee).order_by(col(Employee.created_at).desc())
-    if status:
-        stmt = stmt.where(Employee.status == status)
-    employees = session.exec(stmt).all()
-
-    if search:
-        q = search.strip().lower()
-        employees = [
-            e
-            for e in employees
-            if q in e.full_name.lower()
-            or q in e.employee_code.lower()
-            or q in e.job_title.lower()
-            or q in e.department.lower()
-        ]
-
+    employees = employee_service.list_employees(
+        session=session, status=status, search=search
+    )
     data = [EmployeePublic.model_validate(e) for e in employees]
     return EmployeesPublic(data=data, count=len(data))
 
@@ -56,15 +45,9 @@ def read_employees(
 @router.post("/", response_model=EmployeePublic)
 def create_employee(session: SessionDep, employee_in: EmployeeCreate) -> EmployeePublic:
     """Add a new employee."""
-    if employee_in.employee_code:
-        existing = session.exec(
-            select(Employee).where(
-                Employee.employee_code == employee_in.employee_code.strip()
-            )
-        ).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Employee code already exists.")
-    employee = crud.create_employee(session=session, employee_in=employee_in)
+    employee = employee_service.create_employee(
+        session=session, employee_in=employee_in
+    )
     return EmployeePublic.model_validate(employee)
 
 
@@ -85,18 +68,7 @@ def update_employee(
     employee = session.get(Employee, id)
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
-    if (
-        employee_in.employee_code
-        and employee_in.employee_code != employee.employee_code
-    ):
-        existing = session.exec(
-            select(Employee).where(
-                Employee.employee_code == employee_in.employee_code.strip()
-            )
-        ).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Employee code already exists.")
-    updated = crud.update_employee(
+    updated = employee_service.update_employee(
         session=session, db_employee=employee, employee_in=employee_in
     )
     return EmployeePublic.model_validate(updated)
@@ -140,7 +112,7 @@ def read_employee_vacation_balance(
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
     target_year = year or date.today().year
-    taken, pending, remaining = crud.calculate_vacation_balance(
+    taken, pending, remaining = vacation_service.calculate_vacation_balance(
         session=session, employee=employee, year=target_year
     )
     return VacationBalance(

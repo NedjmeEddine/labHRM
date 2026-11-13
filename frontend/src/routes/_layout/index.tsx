@@ -14,8 +14,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getVacationStatusDisplay } from "@/lib/domain-labels"
 import { dashboardApi } from "@/lib/hr-api"
 import { formatDZD, useTranslation } from "@/lib/i18n"
+import { queryKeys } from "@/lib/query-keys"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -32,7 +34,7 @@ function Dashboard() {
   const { t } = useTranslation()
 
   const { data, isLoading } = useQuery({
-    queryKey: ["dashboard"],
+    queryKey: queryKeys.dashboard.summary,
     queryFn: dashboardApi.getSummary,
   })
 
@@ -228,29 +230,28 @@ function Dashboard() {
               <Skeleton className="h-24 w-full" />
             ) : data && data.upcoming_vacations.length > 0 ? (
               <div className="space-y-3">
-                {data.upcoming_vacations.map((vac) => (
-                  <div
-                    key={vac.id}
-                    className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{vac.employee_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {vac.start_date} → {vac.end_date} ({vac.days_count}{" "}
-                        {t("days")})
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        vac.status === "approved" ? "default" : "secondary"
-                      }
+                {data.upcoming_vacations.map((vac) => {
+                  const statusDisplay = getVacationStatusDisplay(vac.status, t)
+                  return (
+                    <div
+                      key={vac.id}
+                      className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0"
                     >
-                      {vac.status === "approved"
-                        ? t("statusApproved")
-                        : t("statusPending")}
-                    </Badge>
-                  </div>
-                ))}
+                      <div>
+                        <p className="text-sm font-medium">
+                          {vac.employee_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {vac.start_date} → {vac.end_date} ({vac.days_count}{" "}
+                          {t("days")})
+                        </p>
+                      </div>
+                      <Badge variant={statusDisplay.variant}>
+                        {statusDisplay.label}
+                      </Badge>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">{t("noData")}</p>

@@ -1,4 +1,5 @@
 import {
+  Boxes,
   CalendarDays,
   Home,
   Palmtree,
@@ -30,6 +31,7 @@ export function AppSidebar() {
     { icon: CalendarDays, title: t("navAttendance"), path: "/attendance" },
     { icon: Palmtree, title: t("navVacations"), path: "/vacations" },
     { icon: Wallet, title: t("navPayroll"), path: "/payroll" },
+    { icon: Boxes, title: t("navInventory"), path: "/inventory" },
     { icon: Settings, title: t("navSettings"), path: "/settings" },
   ]
 

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createFileRoute, redirect } from "@tanstack/react-router"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -18,12 +19,10 @@ import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 import { useTranslation } from "@/lib/i18n"
 
-const formSchema = z.object({
-  username: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
-})
-
-type FormData = z.infer<typeof formSchema>
+interface FormData {
+  username: string
+  password: string
+}
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -46,6 +45,15 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const { loginMutation } = useAuth()
   const { t } = useTranslation()
+
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        username: z.email({ message: t("invalidEmail") }),
+        password: z.string().min(1, { message: t("passwordRequired") }),
+      }),
+    [t],
+  )
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

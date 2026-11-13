@@ -14,8 +14,8 @@ FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Ensure SQLite tables and default admin account exist
+async def lifespan(_app: FastAPI):
+    # Ensure SQLite tables, indexes, and default admin account exist
     with Session(engine) as session:
         init_db(session)
     yield
@@ -32,11 +32,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS configuration
+# Bearer-token auth does not use cookies: allow_credentials=False makes allow_origins=["*"]
+# CORS-spec compliant for Tauri v2 WebViews, Cloudflare Tunnels, and Vite dev servers.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

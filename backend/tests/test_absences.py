@@ -174,3 +174,56 @@ def test_absence_range_validation_and_csv_export(
     assert "Date;Matricule;Employe;Type;Payee;Motif" in text
     assert "Amine Ziani" in text
     assert "Retard prolongé" in text
+
+
+def test_absence_patch_duplicate_rejected_and_csv_formula_escaped(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    emp_id = _create_emp(client, auth_headers)
+
+    client.post(
+        f"{settings.API_V1_STR}/absences/",
+        json={
+            "employee_id": emp_id,
+            "date": "2026-11-01",
+            "absence_type": "unjustified",
+            "is_paid": False,
+            "reason": "=CMD|' /C calc'!A0",
+        },
+        headers=auth_headers,
+    )
+    second = client.post(
+        f"{settings.API_V1_STR}/absences/",
+        json={
+            "employee_id": emp_id,
+            "date": "2026-11-02",
+            "absence_type": "sick",
+            "is_paid": True,
+        },
+        headers=auth_headers,
+    )
+    assert second.status_code == 200
+    second_id = second.json()["id"]
+
+    # Updating Nov 2 to Nov 1 must be rejected as duplicate
+    dup_patch = client.patch(
+        f"{settings.API_V1_STR}/absences/{second_id}",
+        json={"date": "2026-11-01"},
+        headers=auth_headers,
+    )
+    assert dup_patch.status_code == 400
+
+    # CSV export escapes formula-injection prefix and respects absence_type filter
+    csv_all = client.get(
+        f"{settings.API_V1_STR}/absences/export/csv", headers=auth_headers
+    )
+    text_all = csv_all.content.decode("utf-8-sig")
+    assert "'=CMD|" in text_all
+
+    csv_sick = client.get(
+        f"{settings.API_V1_STR}/absences/export/csv?absence_type=sick",
+        headers=auth_headers,
+    )
+    text_sick = csv_sick.content.decode("utf-8-sig")
+    assert "2026-11-02" in text_sick
+    assert "2026-11-01" not in text_sick

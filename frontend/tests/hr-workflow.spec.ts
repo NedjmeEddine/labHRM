@@ -51,6 +51,10 @@ test("complete HR workflow: employee, absence interval, vacation, performance, e
   await expect(page.getByText("1 day", { exact: true })).toBeVisible()
   await expect(page.getByText("2 000,00 DZD")).toBeVisible()
 
+  // Inspect Oct 5 on calendar -> Selected Day Details panel appears
+  await page.locator('[data-day="2026-10-05"] button').click()
+  await expect(page.getByText("Events on 2026-10-05")).toBeVisible()
+
   // 4. Vacations & Balance
   await page.getByRole("link", { name: "Vacations" }).click()
   await expect(page).toHaveURL("/vacations")
@@ -102,4 +106,22 @@ test("complete HR workflow: employee, absence interval, vacation, performance, e
 
   // Verify updated net salary persisted in table
   await expect(page.getByRole("cell", { name: "48 000,00 DZD" })).toBeVisible()
+
+  // 7. Settings & WAL-safe SQLite Database Backup Download
+  await page.getByRole("link", { name: "Settings" }).click()
+  await expect(page).toHaveURL("/settings")
+  await expect(
+    page.getByRole("button", { name: /Download Backup/i }),
+  ).toBeVisible()
+
+  const backupDownloadPromise = page.waitForEvent("download")
+  await page.getByTestId("download-backup-button").click()
+  const backupDownload = await backupDownloadPromise
+  expect(backupDownload.suggestedFilename()).toMatch(
+    /^el_amel_lab_backup_.*\.db$/,
+  )
+  const backupPath = await backupDownload.path()
+  expect(backupPath).toBeTruthy()
+  const sqliteMagic = fs.readFileSync(backupPath!).subarray(0, 15).toString()
+  expect(sqliteMagic).toBe("SQLite format 3")
 })

@@ -10,7 +10,7 @@ import app.api.deps as deps_module
 import app.core.db as db_module
 import app.main as main_module
 from app.core.config import settings
-from app.core.db import init_db
+from app.core.db import apply_sqlite_pragmas, init_db
 from app.main import app
 
 
@@ -22,11 +22,7 @@ def test_engine(tmp_path: Path):
         connect_args={"check_same_thread": False},
     )
 
-    @event.listens_for(engine, "connect")
-    def _set_sqlite_pragma(dbapi_connection, _connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+    event.listen(engine, "connect", apply_sqlite_pragmas)
 
     # Patch engine references across modules so lifespan & helpers use isolated DB
     orig_db_engine = db_module.engine

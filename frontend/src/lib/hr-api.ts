@@ -1,33 +1,23 @@
-import axios from "axios"
+import { api, downloadAuthenticatedFile } from "@/lib/api/client"
+import { formatLocalDate } from "@/lib/date"
 
-const baseURL = import.meta.env.VITE_API_URL ?? ""
+export {
+  authApi,
+  type LoginCredentials,
+  type TokenResponse,
+  type UpdatePassword,
+  type UserPublic,
+  type UserUpdateMe,
+  usersApi,
+} from "@/lib/api/auth"
+export {
+  api,
+  downloadAuthenticatedFile,
+  extractApiErrorMessage,
+  setUnauthorizedHandler,
+} from "@/lib/api/client"
 
-export const api = axios.create({
-  baseURL,
-})
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token")
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response && [401, 403].includes(err.response.status)) {
-      localStorage.removeItem("access_token")
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login"
-      }
-    }
-    return Promise.reject(err)
-  },
-)
-
-// --- Types ---
+// --- HR & Settings Domain Types ---
 export interface CompanySettings {
   id: number
   company_name: string
@@ -38,8 +28,18 @@ export interface CompanySettings {
   currency: string
   working_days_per_month: number
   default_annual_vacation_days: number
+  inventory_tracking_enabled?: boolean
+  manual_stock_out_enabled?: boolean
+  default_expiry_alert_days?: number
   updated_at: string
 }
+
+export type EmployeeStatus = "active" | "on_leave" | "terminated"
+export type AbsenceType = "unjustified" | "sick" | "justified" | "half_day"
+export type VacationType = "annual" | "sick" | "unpaid" | "other"
+export type VacationStatus = "approved" | "pending" | "rejected"
+export type PaymentMethod = "bank_transfer" | "cash" | "check"
+export type PayslipStatus = "draft" | "paid"
 
 export interface Employee {
   id: string
@@ -50,7 +50,7 @@ export interface Employee {
   job_title: string
   department: string
   hire_date: string
-  status: "active" | "on_leave" | "terminated"
+  status: EmployeeStatus
   base_salary: number
   annual_vacation_days: number
   social_security_number: string | null
@@ -66,7 +66,7 @@ export interface EmployeeCreate {
   job_title: string
   department: string
   hire_date: string
-  status?: string
+  status?: EmployeeStatus
   base_salary: number
   annual_vacation_days: number
   social_security_number?: string | null
@@ -90,7 +90,7 @@ export interface Absence {
   id: string
   employee_id: string
   date: string
-  absence_type: "unjustified" | "sick" | "justified" | "half_day"
+  absence_type: AbsenceType
   is_paid: boolean
   reason: string | null
   employee_name: string | null
@@ -113,8 +113,8 @@ export interface Vacation {
   start_date: string
   end_date: string
   days_count: number
-  vacation_type: "annual" | "sick" | "unpaid" | "other"
-  status: "approved" | "pending" | "rejected"
+  vacation_type: VacationType
+  status: VacationStatus
   notes: string | null
   employee_name: string | null
   employee_code: string | null
@@ -162,8 +162,8 @@ export interface Payslip {
   net_salary: number
   worked_days: number
   vacation_days_taken: number
-  payment_method: "bank_transfer" | "cash" | "check"
-  status: "draft" | "paid"
+  payment_method: PaymentMethod
+  status: PayslipStatus
   notes: string | null
   employee_name: string
   employee_code: string
@@ -188,34 +188,13 @@ export interface DashboardSummary {
   currency: string
 }
 
-// Helper to trigger browser file download with auth header
-export async function downloadAuthenticatedFile(
-  url: string,
-  filename: string,
-  openInNewTab = false,
-) {
-  const res = await api.get(url, { responseType: "blob" })
-  const blobUrl = window.URL.createObjectURL(res.data)
-  if (openInNewTab) {
-    window.open(blobUrl, "_blank")
-    return
-  }
-  const link = document.createElement("a")
-  link.href = blobUrl
-  link.setAttribute("download", filename)
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 5000)
-}
-
 export const dashboardApi = {
   getSummary: () =>
     api.get<DashboardSummary>("/api/v1/dashboard/").then((r) => r.data),
 }
 
 export const employeesApi = {
-  list: (params?: { status?: string; search?: string }) =>
+  list: (params?: { status?: EmployeeStatus; search?: string }) =>
     api
       .get<{ data: Employee[]; count: number }>("/api/v1/employees/", {
         params,
@@ -246,7 +225,7 @@ export const absencesApi = {
     employee_id?: string
     start_date?: string
     end_date?: string
-    absence_type?: string
+    absence_type?: AbsenceType
   }) =>
     api
       .get<AbsencesIntervalSummary>("/api/v1/absences/", { params })
@@ -254,7 +233,7 @@ export const absencesApi = {
   create: (data: {
     employee_id: string
     date: string
-    absence_type: string
+    absence_type: AbsenceType
     is_paid: boolean
     reason?: string | null
   }) => api.post<Absence>("/api/v1/absences/", data).then((r) => r.data),
@@ -262,7 +241,7 @@ export const absencesApi = {
     employee_id: string
     start_date: string
     end_date: string
-    absence_type: string
+    absence_type: AbsenceType
     is_paid: boolean
     reason?: string | null
   }) => api.post<Absence[]>("/api/v1/absences/range", data).then((r) => r.data),
@@ -274,11 +253,13 @@ export const absencesApi = {
     employee_id?: string
     start_date?: string
     end_date?: string
+    absence_type?: AbsenceType
   }) => {
     const query = new URLSearchParams()
     if (params?.employee_id) query.set("employee_id", params.employee_id)
     if (params?.start_date) query.set("start_date", params.start_date)
     if (params?.end_date) query.set("end_date", params.end_date)
+    if (params?.absence_type) query.set("absence_type", params.absence_type)
     const qs = query.toString()
     return downloadAuthenticatedFile(
       `/api/v1/absences/export/csv${qs ? `?${qs}` : ""}`,
@@ -290,7 +271,7 @@ export const absencesApi = {
 export const vacationsApi = {
   list: (params?: {
     employee_id?: string
-    status?: string
+    status?: VacationStatus
     start_date?: string
     end_date?: string
   }) =>
@@ -309,8 +290,8 @@ export const vacationsApi = {
     employee_id: string
     start_date: string
     end_date: string
-    vacation_type: string
-    status: string
+    vacation_type: VacationType
+    status: VacationStatus
     notes?: string | null
   }) => api.post<Vacation>("/api/v1/vacations/", data).then((r) => r.data),
   update: (id: string, data: Partial<Vacation>) =>
@@ -352,7 +333,7 @@ export const payslipsApi = {
     employee_id?: string
     month?: number
     year?: number
-    status?: string
+    status?: PayslipStatus
   }) =>
     api
       .get<{ data: Payslip[]; count: number }>("/api/v1/payslips/", { params })
@@ -402,4 +383,9 @@ export const settingsApi = {
     api
       .patch<CompanySettings>("/api/v1/settings/company", data)
       .then((r) => r.data),
+  downloadBackup: () =>
+    downloadAuthenticatedFile(
+      "/api/v1/settings/backup",
+      `el_amel_lab_backup_${formatLocalDate()}.db`,
+    ),
 }

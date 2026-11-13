@@ -2,64 +2,59 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
-  type Body_login_login_access_token as AccessToken,
-  LoginService,
+  authApi,
+  extractApiErrorMessage,
+  type LoginCredentials,
   type UserPublic,
-  type UserRegister,
-  UsersService,
-} from "@/client"
-import { handleError } from "@/utils"
+  usersApi,
+} from "@/lib/hr-api"
+import { useTranslation } from "@/lib/i18n"
+import { queryKeys } from "@/lib/query-keys"
+import {
+  getStorageItem,
+  removeStorageItem,
+  STORAGE_KEYS,
+  setStorageItem,
+} from "@/lib/storage"
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
-  return localStorage.getItem("access_token") !== null
+  return getStorageItem(STORAGE_KEYS.accessToken) !== null
 }
 
 const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
+  const { t } = useTranslation()
 
   const { data: user } = useQuery<UserPublic | null, Error>({
-    queryKey: ["currentUser"],
-    queryFn: async () => (await UsersService.readUserMe()).data,
+    queryKey: queryKeys.auth.currentUser,
+    queryFn: usersApi.readMe,
     enabled: isLoggedIn(),
   })
 
-  const signUpMutation = useMutation({
-    mutationFn: (data: UserRegister) =>
-      UsersService.registerUser({ body: data }),
-    onSuccess: () => {
-      navigate({ to: "/login" })
-    },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] })
-    },
-  })
-
-  const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      body: data,
-    })
-    localStorage.setItem("access_token", response.data.access_token)
-  }
-
   const loginMutation = useMutation({
-    mutationFn: login,
+    mutationFn: async (data: LoginCredentials) => {
+      const response = await authApi.login(data)
+      setStorageItem(STORAGE_KEYS.accessToken, response.access_token)
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser })
       navigate({ to: "/" })
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (err) => {
+      showErrorToast(extractApiErrorMessage(err, t("somethingWentWrong")))
+    },
   })
 
   const logout = () => {
-    localStorage.removeItem("access_token")
+    removeStorageItem(STORAGE_KEYS.accessToken)
+    queryClient.clear()
     navigate({ to: "/login" })
   }
 
   return {
-    signUpMutation,
     loginMutation,
     logout,
     user,

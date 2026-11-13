@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { type UpdatePassword, UsersService } from "@/client"
 import {
   Form,
   FormControl,
@@ -15,31 +15,46 @@ import {
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import {
+  extractApiErrorMessage,
+  type UpdatePassword,
+  usersApi,
+} from "@/lib/hr-api"
+import { useTranslation } from "@/lib/i18n"
 
-const formSchema = z
-  .object({
-    current_password: z
-      .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    new_password: z
-      .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    confirm_password: z
-      .string()
-      .min(1, { message: "Password confirmation is required" }),
-  })
-  .refine((data) => data.new_password === data.confirm_password, {
-    message: "The passwords don't match",
-    path: ["confirm_password"],
-  })
-
-type FormData = z.infer<typeof formSchema>
+interface FormData {
+  current_password: string
+  new_password: string
+  confirm_password: string
+}
 
 const ChangePassword = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const { t } = useTranslation()
+
+  const formSchema = useMemo(
+    () =>
+      z
+        .object({
+          current_password: z
+            .string()
+            .min(1, { message: t("passwordRequired") })
+            .min(8, { message: t("passwordMinLength") }),
+          new_password: z
+            .string()
+            .min(1, { message: t("passwordRequired") })
+            .min(8, { message: t("passwordMinLength") }),
+          confirm_password: z
+            .string()
+            .min(1, { message: t("confirmPasswordRequired") }),
+        })
+        .refine((data) => data.new_password === data.confirm_password, {
+          message: t("passwordsMismatch"),
+          path: ["confirm_password"],
+        }),
+    [t],
+  )
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onSubmit",
@@ -52,22 +67,26 @@ const ChangePassword = () => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: UpdatePassword) =>
-      UsersService.updatePasswordMe({ body: data }),
+    mutationFn: (data: UpdatePassword) => usersApi.updatePassword(data),
     onSuccess: () => {
-      showSuccessToast("Password updated successfully")
+      showSuccessToast(t("toastPasswordUpdated"))
       form.reset()
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (err) => {
+      showErrorToast(extractApiErrorMessage(err, t("toastSaveError")))
+    },
   })
 
   const onSubmit = async (data: FormData) => {
-    mutation.mutate(data)
+    mutation.mutate({
+      current_password: data.current_password,
+      new_password: data.new_password,
+    })
   }
 
   return (
     <div className="max-w-md">
-      <h3 className="text-lg font-semibold py-4">Change Password</h3>
+      <h3 className="text-lg font-semibold py-4">{t("changePassword")}</h3>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -78,7 +97,7 @@ const ChangePassword = () => {
             name="current_password"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Current Password</FormLabel>
+                <FormLabel>{t("currentPassword")}</FormLabel>
                 <FormControl>
                   <PasswordInput
                     data-testid="current-password-input"
@@ -97,7 +116,7 @@ const ChangePassword = () => {
             name="new_password"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t("newPassword")}</FormLabel>
                 <FormControl>
                   <PasswordInput
                     data-testid="new-password-input"
@@ -116,7 +135,7 @@ const ChangePassword = () => {
             name="confirm_password"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>{t("confirmPassword")}</FormLabel>
                 <FormControl>
                   <PasswordInput
                     data-testid="confirm-password-input"
@@ -135,7 +154,7 @@ const ChangePassword = () => {
             loading={mutation.isPending}
             className="self-start"
           >
-            Update Password
+            {t("updatePassword")}
           </LoadingButton>
         </form>
       </Form>

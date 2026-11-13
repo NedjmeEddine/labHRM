@@ -1,49 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import {
-  eachDayOfInterval,
-  endOfMonth,
-  format,
-  parseISO,
-  startOfMonth,
-} from "date-fns"
-import { CalendarPlus, Download, Plus, Trash2 } from "lucide-react"
-import { type CSSProperties, useMemo, useState } from "react"
-import { type DateRange, DayPicker } from "react-day-picker"
-import { enUS, fr } from "react-day-picker/locale"
-import "react-day-picker/style.css"
+import { endOfMonth, startOfMonth } from "date-fns"
+import { CalendarPlus, Download, Plus } from "lucide-react"
+import { useMemo, useState } from "react"
+import type { DateRange } from "react-day-picker"
 import { toast } from "sonner"
 
-import { Badge } from "@/components/ui/badge"
+import { ConfirmDeleteDialog } from "@/components/Common/ConfirmDeleteDialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AbsenceFormDialog } from "@/features/attendance/AbsenceFormDialog"
+import { AttendanceCalendarCard } from "@/features/attendance/AttendanceCalendarCard"
+import { AttendanceFilterBar } from "@/features/attendance/AttendanceFilterBar"
+import { AttendanceSelectedDayCard } from "@/features/attendance/AttendanceSelectedDayCard"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { LoadingButton } from "@/components/ui/loading-button"
+  AttendanceSummaryCards,
+  AttendanceTable,
+} from "@/features/attendance/AttendanceTable"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  formatLocalDate,
+  safeEachDayOfInterval,
+  safeParseIsoDate,
+} from "@/lib/date"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { absencesApi, employeesApi, vacationsApi } from "@/lib/hr-api"
-import { formatDZD, useTranslation } from "@/lib/i18n"
+  type Absence,
+  absencesApi,
+  employeesApi,
+  extractApiErrorMessage,
+  vacationsApi,
+} from "@/lib/hr-api"
+import { useTranslation } from "@/lib/i18n"
+import { queryKeys } from "@/lib/query-keys"
 
 export const Route = createFileRoute("/_layout/attendance")({
   component: AttendancePage,
@@ -53,164 +39,149 @@ export const Route = createFileRoute("/_layout/attendance")({
 })
 
 function AttendancePage() {
-  const { t, lang } = useTranslation()
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
-  const today = new Date()
+  const [today] = useState(() => new Date())
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("all")
-  const [range, setRange] = useState<DateRange | undefined>({
+  const [range, setRange] = useState<DateRange | undefined>(() => ({
     from: startOfMonth(today),
     to: endOfMonth(today),
-  })
+  }))
   const [calendarMonth, setCalendarMonth] = useState<Date>(today)
+  const [inspectedDay, setInspectedDay] = useState<Date | null>(null)
+  const [modalState, setModalState] = useState<{
+    mode: "single" | "range"
+    defaultDate: string
+  } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Absence | null>(null)
 
-  // Modal state
-  const [modalMode, setModalMode] = useState<"single" | "range" | null>(null)
-  const [formEmpId, setFormEmpId] = useState("")
-  const [formDate, setFormDate] = useState(format(today, "yyyy-MM-dd"))
-  const [formEndDate, setFormEndDate] = useState(format(today, "yyyy-MM-dd"))
-  const [formType, setFormType] = useState("unjustified")
-  const [formIsPaid, setFormIsPaid] = useState(false)
-  const [formReason, setFormReason] = useState("")
+  const startStr = range?.from ? formatLocalDate(range.from) : undefined
+  const endStr = range?.to ? formatLocalDate(range.to) : startStr
 
-  const startStr = range?.from ? format(range.from, "yyyy-MM-dd") : undefined
-  const endStr = range?.to ? format(range.to, "yyyy-MM-dd") : startStr
+  const calStart = formatLocalDate(startOfMonth(calendarMonth))
+  const calEnd = formatLocalDate(endOfMonth(calendarMonth))
+  const employeeFilter =
+    selectedEmployeeId === "all" ? undefined : selectedEmployeeId
 
   const { data: employeesData } = useQuery({
-    queryKey: ["employees", "all"],
+    queryKey: queryKeys.employees.list("all"),
     queryFn: () => employeesApi.list(),
   })
 
-  // Filtered absences for the interval checker table + KPI cards
   const { data: intervalSummary } = useQuery({
-    queryKey: ["absences", selectedEmployeeId, startStr, endStr],
+    queryKey: queryKeys.absences.list({
+      employeeId: selectedEmployeeId,
+      startDate: startStr,
+      endDate: endStr,
+    }),
     queryFn: () =>
       absencesApi.list({
-        employee_id:
-          selectedEmployeeId === "all" ? undefined : selectedEmployeeId,
+        employee_id: employeeFilter,
         start_date: startStr,
         end_date: endStr,
       }),
   })
 
-  // All absences & vacations for the visible calendar month (so dots appear even outside interval)
-  const calStart = format(startOfMonth(calendarMonth), "yyyy-MM-dd")
-  const calEnd = format(endOfMonth(calendarMonth), "yyyy-MM-dd")
+  // Reuse intervalSummary when the visible month exactly matches the selected interval
+  const sameMonthAsInterval = startStr === calStart && endStr === calEnd
 
-  const { data: monthAbsences } = useQuery({
-    queryKey: ["absences-month", selectedEmployeeId, calStart, calEnd],
+  const { data: monthAbsencesQuery } = useQuery({
+    queryKey: queryKeys.absences.month({
+      employeeId: selectedEmployeeId,
+      startDate: calStart,
+      endDate: calEnd,
+    }),
     queryFn: () =>
       absencesApi.list({
-        employee_id:
-          selectedEmployeeId === "all" ? undefined : selectedEmployeeId,
+        employee_id: employeeFilter,
         start_date: calStart,
         end_date: calEnd,
       }),
+    enabled: !sameMonthAsInterval,
   })
 
+  const monthAbsences = sameMonthAsInterval
+    ? intervalSummary
+    : monthAbsencesQuery
+
   const { data: monthVacations } = useQuery({
-    queryKey: ["vacations-month", selectedEmployeeId, calStart, calEnd],
+    queryKey: queryKeys.vacations.month({
+      employeeId: selectedEmployeeId,
+      startDate: calStart,
+      endDate: calEnd,
+    }),
     queryFn: () =>
       vacationsApi.list({
-        employee_id:
-          selectedEmployeeId === "all" ? undefined : selectedEmployeeId,
+        employee_id: employeeFilter,
         status: "approved",
         start_date: calStart,
         end_date: calEnd,
       }),
   })
 
-  const unpaidDates = useMemo(() => {
-    if (!monthAbsences) return []
-    return monthAbsences.data
-      .filter((a) => !a.is_paid)
-      .map((a) => parseISO(a.date))
-  }, [monthAbsences])
-
-  const paidDates = useMemo(() => {
-    if (!monthAbsences) return []
-    return monthAbsences.data
-      .filter((a) => a.is_paid)
-      .map((a) => parseISO(a.date))
+  const { unpaidDates, paidDates } = useMemo(() => {
+    const unpaid: Date[] = []
+    const paid: Date[] = []
+    if (!monthAbsences) {
+      return { unpaidDates: unpaid, paidDates: paid }
+    }
+    for (const ab of monthAbsences.data) {
+      const parsed = safeParseIsoDate(ab.date)
+      if (!parsed) continue
+      if (ab.is_paid) {
+        paid.push(parsed)
+      } else {
+        unpaid.push(parsed)
+      }
+    }
+    return { unpaidDates: unpaid, paidDates: paid }
   }, [monthAbsences])
 
   const vacationDates = useMemo(() => {
     if (!monthVacations) return []
     const dates: Date[] = []
     for (const v of monthVacations.data) {
-      const days = eachDayOfInterval({
-        start: parseISO(v.start_date),
-        end: parseISO(v.end_date),
-      })
-      dates.push(...days)
+      dates.push(...safeEachDayOfInterval(v.start_date, v.end_date))
     }
     return dates
   }, [monthVacations])
 
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      if (!formEmpId) throw new Error("Select employee")
-      if (modalMode === "range") {
-        return absencesApi.createRange({
-          employee_id: formEmpId,
-          start_date: formDate,
-          end_date: formEndDate,
-          absence_type: formType,
-          is_paid: formIsPaid,
-          reason: formReason || null,
-        })
-      }
-      return absencesApi.create({
-        employee_id: formEmpId,
-        date: formDate,
-        absence_type: formType,
-        is_paid: formIsPaid,
-        reason: formReason || null,
-      })
-    },
-    onSuccess: () => {
-      toast.success("Absence enregistrée")
-      queryClient.invalidateQueries({ queryKey: ["absences"] })
-      queryClient.invalidateQueries({ queryKey: ["absences-month"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
-      setModalMode(null)
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.detail || "Erreur")
-    },
-  })
-
   const deleteMutation = useMutation({
     mutationFn: (id: string) => absencesApi.delete(id),
     onSuccess: () => {
-      toast.success("Absence supprimée")
-      queryClient.invalidateQueries({ queryKey: ["absences"] })
+      toast.success(t("toastAbsenceDeleted"))
+      queryClient.invalidateQueries({ queryKey: queryKeys.absences.all })
       queryClient.invalidateQueries({ queryKey: ["absences-month"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary })
+      setDeleteTarget(null)
+    },
+    onError: (err) => {
+      toast.error(extractApiErrorMessage(err, t("toastSaveError")))
     },
   })
 
+  const employees = employeesData?.data ?? []
+  const defaultModalEmployeeId =
+    selectedEmployeeId !== "all" ? selectedEmployeeId : (employees[0]?.id ?? "")
+
   const openModal = (mode: "single" | "range", defaultDate?: string) => {
-    setFormEmpId(
-      selectedEmployeeId !== "all"
-        ? selectedEmployeeId
-        : (employeesData?.data[0]?.id ?? ""),
-    )
-    const d = defaultDate ?? format(today, "yyyy-MM-dd")
-    setFormDate(d)
-    setFormEndDate(d)
-    setFormType("unjustified")
-    setFormIsPaid(false)
-    setFormReason("")
-    setModalMode(mode)
+    setModalState({
+      mode,
+      defaultDate: defaultDate ?? formatLocalDate(today),
+    })
   }
 
-  const getTypeLabel = (type: string) => {
-    if (type === "unjustified") return t("absUnjustified")
-    if (type === "sick") return t("absSick")
-    if (type === "justified") return t("absJustified")
-    if (type === "half_day") return t("absHalfDay")
-    return type
+  const handleExportCsv = async () => {
+    try {
+      await absencesApi.exportCsv({
+        employee_id: employeeFilter,
+        start_date: startStr,
+        end_date: endStr,
+      })
+    } catch (err) {
+      toast.error(extractApiErrorMessage(err, t("toastExportError")))
+    }
   }
 
   return (
@@ -221,18 +192,7 @@ function AttendancePage() {
           <p className="text-muted-foreground text-sm">{t("attSubtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              absencesApi.exportCsv({
-                employee_id:
-                  selectedEmployeeId === "all" ? undefined : selectedEmployeeId,
-                start_date: startStr,
-                end_date: endStr,
-              })
-            }
-          >
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <Download className="mr-1.5 h-4 w-4" />
             {t("exportCsv")}
           </Button>
@@ -251,368 +211,81 @@ function AttendancePage() {
         </div>
       </div>
 
-      {/* Filter & Interval Controls */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t("intervalChecker")}</CardTitle>
-          <p className="text-xs text-muted-foreground">{t("intervalDesc")}</p>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-4 items-end">
-          <div className="grid gap-1.5">
-            <Label>{t("navEmployees")}</Label>
-            <Select
-              value={selectedEmployeeId}
-              onValueChange={setSelectedEmployeeId}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allEmployees")}</SelectItem>
-                {employeesData?.data.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.employee_code} — {emp.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{t("startDate")}</Label>
-            <Input
-              data-testid="interval-start"
-              type="date"
-              value={startStr ?? ""}
-              onChange={(e) => {
-                if (!e.target.value) return
-                const from = parseISO(e.target.value)
-                setRange((prev) => ({
-                  from,
-                  to: prev?.to && prev.to >= from ? prev.to : from,
-                }))
-                setCalendarMonth(from)
-              }}
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{t("endDate")}</Label>
-            <Input
-              data-testid="interval-end"
-              type="date"
-              value={endStr ?? ""}
-              onChange={(e) => {
-                if (!e.target.value) return
-                const to = parseISO(e.target.value)
-                setRange((prev) => ({ from: prev?.from ?? to, to }))
-              }}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full"
-              onClick={() => {
-                setRange({
-                  from: startOfMonth(today),
-                  to: endOfMonth(today),
-                })
-                setCalendarMonth(today)
-              }}
-            >
-              {t("thisMonth")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <AttendanceFilterBar
+        employees={employees}
+        selectedEmployeeId={selectedEmployeeId}
+        onEmployeeChange={setSelectedEmployeeId}
+        startStr={startStr}
+        endStr={endStr}
+        onStartChange={(from) => {
+          setRange((prev) => ({
+            from,
+            to: prev?.to && prev.to >= from ? prev.to : from,
+          }))
+          setCalendarMonth(from)
+        }}
+        onEndChange={(to) => {
+          setRange((prev) => ({ from: prev?.from ?? to, to }))
+        }}
+        onResetThisMonth={() => {
+          setRange({ from: startOfMonth(today), to: endOfMonth(today) })
+          setCalendarMonth(today)
+        }}
+      />
 
-      {/* Main Grid: Calendar Left + Interval Summary & List Right */}
+      {/* Main Grid: Calendar + Selected Day Left, Summary & List Right */}
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Calendar Card */}
-        <Card className="lg:col-span-4">
-          <CardContent className="pt-6 flex flex-col items-center">
-            <DayPicker
-              mode="range"
-              selected={range}
-              onSelect={setRange}
-              month={calendarMonth}
-              onMonthChange={setCalendarMonth}
-              locale={lang === "fr" ? fr : enUS}
-              style={
-                {
-                  "--rdp-accent-color": "var(--brand)",
-                  "--rdp-accent-background-color": "var(--mist)",
-                  "--rdp-range_middle-background-color": "var(--mist)",
-                  "--rdp-range_middle-color": "var(--brand-deep)",
-                } as CSSProperties
-              }
-              modifiers={{
-                unpaid: unpaidDates,
-                paid: paidDates,
-                vacation: vacationDates,
-              }}
-              modifiersClassNames={{
-                unpaid:
-                  "!bg-red-500/20 !text-red-700 dark:!text-red-300 font-bold ring-1 ring-red-500/50",
-                paid: "!bg-amber-500/20 !text-amber-700 dark:!text-amber-300 font-bold",
-                vacation:
-                  "!bg-sky-500/20 !text-sky-700 dark:!text-sky-300 font-semibold",
-              }}
-            />
-            <div className="mt-4 w-full border-t pt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-sm bg-red-500/30 ring-1 ring-red-500/60" />
-                <span>{t("calendarLegendAbsence")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-sm bg-amber-500/30" />
-                <span>{t("calendarLegendPaid")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-sm bg-sky-500/30" />
-                <span>{t("calendarLegendVacation")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-sm bg-primary/20 ring-1 ring-primary" />
-                <span>{t("calendarLegendRange")}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-4 flex flex-col gap-4">
+          <AttendanceCalendarCard
+            range={range}
+            onSelectRange={setRange}
+            calendarMonth={calendarMonth}
+            onMonthChange={setCalendarMonth}
+            onInspectDay={setInspectedDay}
+            unpaidDates={unpaidDates}
+            paidDates={paidDates}
+            vacationDates={vacationDates}
+          />
+          <AttendanceSelectedDayCard
+            inspectedDay={inspectedDay}
+            absences={monthAbsences?.data ?? []}
+            vacations={monthVacations?.data ?? []}
+            onMarkSingleForDate={(iso) => openModal("single", iso)}
+          />
+        </div>
 
-        {/* Right Side: Summary Stats + Table */}
         <div className="lg:col-span-8 flex flex-col gap-4">
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">
-                  {t("totalAbsences")}
-                </p>
-                <p className="text-xl font-bold mt-1">
-                  {intervalSummary?.total_count ?? 0}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">
-                  {t("unpaidDays")}
-                </p>
-                <p className="text-xl font-bold text-destructive mt-1">
-                  {intervalSummary?.unpaid_days ?? 0} {t("day")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">{t("paidDays")}</p>
-                <p className="text-xl font-bold mt-1">
-                  {intervalSummary?.paid_days ?? 0} {t("day")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">
-                  {t("estimatedDeduction")}
-                </p>
-                <p className="text-lg font-bold text-destructive mt-1">
-                  {formatDZD(intervalSummary?.estimated_deduction ?? 0)}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("date")}</TableHead>
-                  <TableHead>{t("fullName")}</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>{t("paid")}</TableHead>
-                  <TableHead>{t("reason")}</TableHead>
-                  <TableHead className="text-right">{t("actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {intervalSummary && intervalSummary.data.length > 0 ? (
-                  intervalSummary.data.map((ab) => (
-                    <TableRow key={ab.id}>
-                      <TableCell className="font-mono text-xs whitespace-nowrap">
-                        {ab.date}
-                      </TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        {ab.employee_name}
-                      </TableCell>
-                      <TableCell className="text-xs whitespace-nowrap">
-                        {getTypeLabel(ab.absence_type)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge
-                          variant={ab.is_paid ? "secondary" : "destructive"}
-                        >
-                          {ab.is_paid ? t("paid") : t("unpaid")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell
-                        className="text-xs text-muted-foreground max-w-[130px] truncate"
-                        title={ab.reason ?? undefined}
-                      >
-                        {ab.reason || "—"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteMutation.mutate(ab.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center text-muted-foreground py-8"
-                    >
-                      {t("noData")}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <AttendanceSummaryCards summary={intervalSummary} />
+          <AttendanceTable
+            absences={intervalSummary?.data ?? []}
+            onRequestDelete={setDeleteTarget}
+          />
         </div>
       </div>
 
-      {/* Mark Absence Dialog */}
-      <Dialog
-        open={modalMode !== null}
-        onOpenChange={(o) => !o && setModalMode(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {modalMode === "range" ? t("markRange") : t("markSingle")}
-            </DialogTitle>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              createMutation.mutate()
-            }}
-            className="grid gap-4 py-2"
-          >
-            <div className="grid gap-1.5">
-              <Label>{t("selectEmployee")} *</Label>
-              <Select value={formEmpId} onValueChange={setFormEmpId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("selectEmployee")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {employeesData?.data.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.employee_code} — {emp.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <AbsenceFormDialog
+        mode={modalState?.mode ?? null}
+        defaultEmployeeId={defaultModalEmployeeId}
+        defaultDate={modalState?.defaultDate ?? formatLocalDate(today)}
+        employees={employees}
+        onClose={() => setModalState(null)}
+      />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-1.5">
-                <Label>
-                  {modalMode === "range" ? t("startDate") : t("date")}
-                </Label>
-                <Input
-                  data-testid="absence-date"
-                  type="date"
-                  required
-                  value={formDate}
-                  onChange={(e) => setFormDate(e.target.value)}
-                />
-              </div>
-              {modalMode === "range" && (
-                <div className="grid gap-1.5">
-                  <Label>{t("endDate")}</Label>
-                  <Input
-                    type="date"
-                    required
-                    value={formEndDate}
-                    onChange={(e) => setFormEndDate(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-1.5">
-                <Label>Type</Label>
-                <Select
-                  value={formType}
-                  onValueChange={(v) => {
-                    setFormType(v)
-                    setFormIsPaid(v === "justified" || v === "sick")
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unjustified">
-                      {t("absUnjustified")}
-                    </SelectItem>
-                    <SelectItem value="sick">{t("absSick")}</SelectItem>
-                    <SelectItem value="justified">
-                      {t("absJustified")}
-                    </SelectItem>
-                    <SelectItem value="half_day">{t("absHalfDay")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
-                <Label>{t("paid")} ?</Label>
-                <Select
-                  value={formIsPaid ? "yes" : "no"}
-                  onValueChange={(v) => setFormIsPaid(v === "yes")}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">{t("unpaid")} (retenue)</SelectItem>
-                    <SelectItem value="yes">{t("paid")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-1.5">
-              <Label>{t("reason")}</Label>
-              <Input
-                value={formReason}
-                onChange={(e) => setFormReason(e.target.value)}
-              />
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setModalMode(null)}
-              >
-                {t("cancel")}
-              </Button>
-              <LoadingButton type="submit" loading={createMutation.isPending}>
-                {t("save")}
-              </LoadingButton>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        itemLabel={
+          deleteTarget
+            ? `${deleteTarget.employee_name ?? ""} (${deleteTarget.date})`
+            : undefined
+        }
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget.id)
+          }
+        }}
+      />
     </div>
   )
 }

@@ -1,14 +1,10 @@
-import csv
-import io
 import uuid
-from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
 from sqlmodel import col, select
 
-from app import crud
 from app.api.deps import SessionDep, get_current_user
 from app.models import (
     Employee,
@@ -18,9 +14,13 @@ from app.models import (
     PayslipGenerateRequest,
     PayslipPublic,
     PayslipsPublic,
+    PayslipStatus,
     PayslipUpdate,
 )
 from app.pdf_generator import generate_payslip_pdf
+from app.services import payroll as payroll_service
+from app.services import system as system_service
+from app.services.csv_export import build_csv_streaming_response
 
 router = APIRouter(
     prefix="/payslips",
@@ -35,7 +35,7 @@ def read_payslips(
     employee_id: Annotated[uuid.UUID | None, Query()] = None,
     month: Annotated[int | None, Query(ge=1, le=12)] = None,
     year: Annotated[int | None, Query(ge=2000, le=2100)] = None,
-    status: Annotated[str | None, Query()] = None,
+    status: Annotated[PayslipStatus | None, Query()] = None,
 ) -> PayslipsPublic:
     """List payslips filtered by period, employee, or status."""
     stmt = select(Payslip).order_by(
@@ -66,7 +66,7 @@ def generate_payslip_draft(
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
 
-    payslip = crud.build_payslip_draft(
+    payslip = payroll_service.build_payslip_draft(
         session=session,
         employee=employee,
         month=req.month,
@@ -81,23 +81,10 @@ def generate_payslips_batch(
     session: SessionDep, req: PayslipBatchGenerateRequest
 ) -> PayslipsPublic:
     """Generate draft payslips for all active employees for a given month/year."""
-    active_employees = session.exec(
-        select(Employee)
-        .where(Employee.status == "active")
-        .order_by(col(Employee.full_name))
-    ).all()
-
-    results: list[PayslipPublic] = []
-    for emp in active_employees:
-        p = crud.build_payslip_draft(
-            session=session,
-            employee=emp,
-            month=req.month,
-            year=req.year,
-            overwrite=False,
-        )
-        results.append(PayslipPublic.model_validate(p))
-
+    payslips = payroll_service.generate_batch_payslips(
+        session=session, month=req.month, year=req.year
+    )
+    results = [PayslipPublic.model_validate(p) for p in payslips]
     return PayslipsPublic(data=results, count=len(results))
 
 
@@ -107,7 +94,7 @@ def export_payslips_csv(
     month: Annotated[int | None, Query(ge=1, le=12)] = None,
     year: Annotated[int | None, Query(ge=2000, le=2100)] = None,
 ) -> StreamingResponse:
-    """Export monthly payroll ledger to CSV for Excel & accountant."""
+    """Export monthly payroll ledger to CSV for Excel & accounting."""
     stmt = select(Payslip).order_by(
         col(Payslip.year).desc(),
         col(Payslip.month).desc(),
@@ -119,12 +106,30 @@ def export_payslips_csv(
         stmt = stmt.where(Payslip.year == year)
 
     payslips = session.exec(stmt).all()
-
-    output = io.StringIO()
-    output.write("\ufeff")
-    writer = csv.writer(output, delimiter=";")
-    writer.writerow(
+    rows = [
         [
+            f"{p.month:02d}/{p.year}",
+            p.employee_code,
+            p.employee_name,
+            p.job_title,
+            f"{p.base_salary:.2f}",
+            f"{p.performance_bonus:.2f}",
+            f"{p.other_allowances:.2f}",
+            f"{p.overtime_pay:.2f}",
+            f"{p.gross_salary:.2f}",
+            f"{p.absence_days:g}",
+            f"{p.absence_deduction:.2f}",
+            f"{p.other_deductions:.2f}",
+            f"{p.net_salary:.2f}",
+            str(p.status),
+            str(p.payment_method),
+        ]
+        for p in payslips
+    ]
+
+    filename = f"paie_{year or 'all'}_{month or 'all'}.csv"
+    return build_csv_streaming_response(
+        headers=[
             "Periode",
             "Matricule",
             "Nom Complet",
@@ -140,35 +145,9 @@ def export_payslips_csv(
             "Net a Payer (DZD)",
             "Statut",
             "Mode Paiement",
-        ]
-    )
-    for p in payslips:
-        writer.writerow(
-            [
-                f"{p.month:02d}/{p.year}",
-                p.employee_code,
-                p.employee_name,
-                p.job_title,
-                f"{p.base_salary:.2f}",
-                f"{p.performance_bonus:.2f}",
-                f"{p.other_allowances:.2f}",
-                f"{p.overtime_pay:.2f}",
-                f"{p.gross_salary:.2f}",
-                f"{p.absence_days:g}",
-                f"{p.absence_deduction:.2f}",
-                f"{p.other_deductions:.2f}",
-                f"{p.net_salary:.2f}",
-                p.status,
-                p.payment_method,
-            ]
-        )
-
-    output.seek(0)
-    filename = f"paie_{year or 'all'}_{month or 'all'}.csv"
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        ],
+        rows=rows,
+        filename=filename,
     )
 
 
@@ -189,31 +168,10 @@ def update_payslip(
     payslip = session.get(Payslip, id)
     if not payslip:
         raise HTTPException(status_code=404, detail="Payslip not found")
-
-    update_data = payslip_in.model_dump(exclude_unset=True)
-    payslip.sqlmodel_update(update_data)
-
-    # Recompute gross & net totals cleanly
-    payslip.gross_salary = round(
-        payslip.base_salary
-        + payslip.performance_bonus
-        + payslip.other_allowances
-        + payslip.overtime_pay,
-        2,
+    updated = payroll_service.update_payslip(
+        session=session, payslip=payslip, payslip_in=payslip_in
     )
-    payslip.net_salary = round(
-        max(
-            0.0,
-            payslip.gross_salary - payslip.absence_deduction - payslip.other_deductions,
-        ),
-        2,
-    )
-    payslip.updated_at = datetime.now(UTC)
-
-    session.add(payslip)
-    session.commit()
-    session.refresh(payslip)
-    return PayslipPublic.model_validate(payslip)
+    return PayslipPublic.model_validate(updated)
 
 
 @router.delete("/{id}", response_model=Message)
@@ -238,7 +196,7 @@ def download_payslip_pdf(
     if not payslip:
         raise HTTPException(status_code=404, detail="Payslip not found")
 
-    company = crud.get_company_settings(session)
+    company = system_service.get_company_settings(session)
     pdf_bytes = generate_payslip_pdf(payslip=payslip, company=company)
 
     disposition = "inline" if inline else "attachment"
