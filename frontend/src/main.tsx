@@ -1,5 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { createRouter, RouterProvider } from "@tanstack/react-router"
+import {
+  createHashHistory,
+  createRouter,
+  RouterProvider,
+} from "@tanstack/react-router"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
 
@@ -7,13 +11,22 @@ import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import { setUnauthorizedHandler } from "./lib/hr-api"
 import { I18nProvider } from "./lib/i18n"
+import { isTauri } from "./lib/platform"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
 const queryClient = new QueryClient()
-setUnauthorizedHandler(() => queryClient.clear())
 
-const router = createRouter({ routeTree })
+const router = createRouter({
+  routeTree,
+  history: isTauri() ? createHashHistory() : undefined,
+})
+
+setUnauthorizedHandler(() => {
+  queryClient.clear()
+  router.navigate({ to: "/login" })
+})
+
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router

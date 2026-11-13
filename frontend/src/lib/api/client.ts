@@ -37,8 +37,11 @@ api.interceptors.response.use(
     const status = err?.response?.status
     if (status === 401 || status === 403) {
       removeStorageItem(STORAGE_KEYS.accessToken)
-      unauthorizedHandler?.()
-      if (window.location.pathname !== "/login") {
+      if (unauthorizedHandler) {
+        unauthorizedHandler()
+      } else if (isTauri()) {
+        window.location.hash = "#/login"
+      } else if (window.location.pathname !== "/login") {
         window.location.href = "/login"
       }
     }

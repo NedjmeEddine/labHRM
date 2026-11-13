@@ -4,28 +4,34 @@ const STORAGE_KEYS = {
   theme: "vite-ui-theme",
 } as const
 
+const memoryStore = new Map<string, string>()
+
 export function getStorageItem(key: string): string | null {
   try {
-    return window.localStorage.getItem(key)
+    const val = window.localStorage.getItem(key)
+    if (val !== null) return val
   } catch {
-    return null
+    // Fallback to in-memory store in restricted WebViews or private browsing
   }
+  return memoryStore.get(key) ?? null
 }
 
 export function setStorageItem(key: string, value: string): void {
   try {
     window.localStorage.setItem(key, value)
   } catch {
-    // Ignore storage errors in restricted WebViews or private browsing modes
+    // Fallback to in-memory store in restricted WebViews or private browsing
   }
+  memoryStore.set(key, value)
 }
 
 export function removeStorageItem(key: string): void {
   try {
     window.localStorage.removeItem(key)
   } catch {
-    // Ignore storage errors in restricted WebViews or private browsing modes
+    // Fallback to in-memory store in restricted WebViews or private browsing
   }
+  memoryStore.delete(key)
 }
 
 export { STORAGE_KEYS }
