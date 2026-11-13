@@ -23,3 +23,11 @@ backend/app/frontend/
 .DS_Store
 .idea/
 .vscode/
+
+# PyInstaller & Build artifacts
+backend/build/
+backend/dist/
+
+# Rust / Tauri target & compiled sidecar binaries
+frontend/src-tauri/target/
+frontend/src-tauri/binaries/

@@ -1,3 +1,4 @@
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -10,7 +11,13 @@ from app.api.main import api_router
 from app.core.config import settings
 from app.core.db import engine, init_db
 
-FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    _bundle_root = Path(sys._MEIPASS)
+    FRONTEND_DIR = _bundle_root / "app" / "frontend"
+    if not FRONTEND_DIR.is_dir():
+        FRONTEND_DIR = _bundle_root / "frontend"
+else:
+    FRONTEND_DIR = Path(__file__).resolve().parent / "frontend"
 
 
 @asynccontextmanager

@@ -253,6 +253,12 @@ const translations = {
     backupDescription:
       "Téléchargez une copie complète et cohérente de la base SQLite (.db) pour vos archives.",
     downloadBackup: "Télécharger sauvegarde (.db)",
+    remoteAccessTitle: "Accès à distance mobile (Cloudflare)",
+    remoteAccessDescription:
+      "Connectez-vous depuis votre smartphone ou votre domicile via Cloudflare Tunnel chiffré sans ouvrir de port.",
+    remoteAccessTunnelRunningHint:
+      "Pour démarrer un tunnel sécurisé, exécutez ./scripts/setup-tunnel.sh sur le PC ou utilisez le service cloudflared.",
+    remoteAccessDocsLink: "Consulter le guide de configuration",
     notAvailable: "N/D",
 
     // Toasts
@@ -597,6 +603,12 @@ const translations = {
     backupDescription:
       "Download a complete, WAL-consistent copy of the SQLite database (.db) for safekeeping.",
     downloadBackup: "Download Backup (.db)",
+    remoteAccessTitle: "Mobile Remote Access (Cloudflare)",
+    remoteAccessDescription:
+      "Connect from your smartphone or home via encrypted Cloudflare Tunnel without opening router ports.",
+    remoteAccessTunnelRunningHint:
+      "To start a secure tunnel, run ./scripts/setup-tunnel.sh on the host PC or use the cloudflared service.",
+    remoteAccessDocsLink: "View configuration guide",
     notAvailable: "N/A",
 
     // Toasts

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 from fpdf import FPDF
@@ -11,7 +12,13 @@ from app.models import (
     get_datetime_utc,
 )
 
-ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    _bundle_root = Path(sys._MEIPASS)
+    ASSETS_DIR = _bundle_root / "app" / "assets"
+    if not ASSETS_DIR.is_dir():
+        ASSETS_DIR = _bundle_root / "assets"
+else:
+    ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 FONTS_DIR = ASSETS_DIR / "fonts"
 LOGO_PATH = ASSETS_DIR / "el-amel-lab-logo.png"
 

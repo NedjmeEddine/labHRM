@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Download } from "lucide-react"
+import { Download, Globe } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -292,6 +292,26 @@ export function CompanySettingsTab() {
             <Download className="mr-2 h-4 w-4" />
             {t("downloadBackup")}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base">
+              {t("remoteAccessTitle")}
+            </CardTitle>
+          </div>
+          <CardDescription>{t("remoteAccessDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <div className="rounded-md bg-muted/50 p-3 font-mono text-xs border">
+            ./scripts/setup-tunnel.sh
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("remoteAccessTunnelRunningHint")}
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -10,7 +10,8 @@
       "!**/src/components/ui/**/*",
       "!**/playwright-report/**/*",
       "!**/test-results/**/*",
-      "!**/playwright.config.ts"
+      "!**/playwright.config.ts",
+      "!**/src-tauri/**/*"
     ]
   },
   "linter": {

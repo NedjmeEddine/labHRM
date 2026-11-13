@@ -1,11 +1,20 @@
 import axios, { AxiosError } from "axios"
 
+import { isTauri } from "@/lib/platform"
 import { getStorageItem, removeStorageItem, STORAGE_KEYS } from "@/lib/storage"
 
-const baseURL = import.meta.env.VITE_API_URL ?? ""
+function getBaseUrl(): string {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  if (isTauri()) {
+    return "http://127.0.0.1:8000"
+  }
+  return ""
+}
 
 export const api = axios.create({
-  baseURL,
+  baseURL: getBaseUrl(),
 })
 
 let unauthorizedHandler: (() => void) | null = null

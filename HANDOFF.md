@@ -220,11 +220,16 @@ The inventory and suppliers module is integrated alongside the HR modules:
   6. **Branded French PDF Statement:** `generate_supplier_statement_pdf` creates a full *Relevé de Compte Fournisseur*.
   7. **Feature Toggles in Settings:** Phase B (Lots & Stock) and Phase C (Manual stock out) are toggled from `/settings`.
 
-### Desktop Packaging Target: **Tauri v2** + Cloudflare Tunnel + GitHub Auto-Update
-* **Sidecar Pattern:** Tauri (`src-tauri/`) bundles the FastAPI + SQLite + `fpdf2` backend (compiled via `PyInstaller`) as a Tauri sidecar (`tauri-plugin-shell`) on `127.0.0.1:8000`.
-* **Data & Signing Secret Storage:** Pass `DATABASE_URL=sqlite:///<app_data_dir>/app.db` via environment variable. Both `app.db` (with WAL mode already active) and `.secret_key` persist automatically inside `<app_data_dir>` outside read-only `Program Files`.
-* **System Tray + Autostart:** Closing the Tauri window hides to tray so `cloudflared` remote access remains online.
-* **GitHub-Backed Update Flow:** `tauri-plugin-updater` + GitHub Releases (`latest.json` built via GitHub Actions on `windows-latest`), triggering pre-update SQLite backup before swapping binaries.
+### Desktop Packaging: **Tauri v2** + Cloudflare Tunnel + GitHub Auto-Update (Implemented)
+* **Sidecar Architecture:** Tauri (`frontend/src-tauri/`) bundles the FastAPI + SQLite + `fpdf2` backend (compiled via `PyInstaller` using `scripts/build-sidecar.sh`) as a Tauri sidecar (`tauri-plugin-shell`) on `127.0.0.1:8000`.
+* **Zero Web Lock-in:** The web frontend does not import Tauri APIs directly; `frontend/src/lib/platform.ts` provides `isTauri()` runtime detection, automatically switching Axios `baseURL` to `http://127.0.0.1:8000` in desktop mode while keeping `""` in web mode.
+* **Data & Signing Secret Storage:** Tauri sets `DATA_DIR=<app_data_dir>/data` and `DATABASE_URL=sqlite:///<app_data_dir>/data/app.db`. SQLite WAL mode (`app.db`), `.secret_key`, and `invoice_scans/` persist automatically inside standard OS user directories outside read-only `Program Files`.
+* **System Tray Keep-Alive:** Closing the desktop window hides to system tray (`WindowEvent::CloseRequested` interception) so the FastAPI backend and `cloudflared` remote tunnel stay continuously online. Reopening from the tray menu or clicking the desktop shortcut restores the window without page reload.
+* **Remote Access Script & Guide:** Documented in `docs/remote-access-cloudflare.md` with interactive helper script `scripts/setup-tunnel.sh` (supporting Quick Tunnels and permanent Zero Trust named tunnels).
+* **Desktop Commands:**
+  * Build sidecar binary: `./scripts/build-sidecar.sh`
+  * Run desktop app in dev: `cd frontend && bun run tauri:dev`
+  * Build release package: `cd frontend && bun run tauri:build`
 * **Client Validation Pending:**
   1. Visually review a generated French PDF (*Bulletin de Paie*) with the client.
   2. Confirm Algerian workweek / weekend rules (Fri vs Fri/Sat skipping on multi-day leaves/absences).

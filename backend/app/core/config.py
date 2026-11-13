@@ -1,13 +1,18 @@
 import os
 import secrets
+import sys
 from pathlib import Path
 from typing import Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = BACKEND_DIR / "data"
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    BACKEND_DIR = Path(sys._MEIPASS)
+else:
+    BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+
+DATA_DIR = Path(os.environ.get("DATA_DIR", BACKEND_DIR / "data")).resolve()
 DEFAULT_DB_PATH = DATA_DIR / "app.db"
 
 PLACEHOLDER_SECRET_KEYS = frozenset(
