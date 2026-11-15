@@ -1,8 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Download, Globe } from "lucide-react"
-import { useState } from "react"
+import {
+  CheckCircle2,
+  Download,
+  Globe,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -20,7 +27,17 @@ import {
   settingsApi,
 } from "@/lib/hr-api"
 import { useTranslation } from "@/lib/i18n"
+import {
+  type AppUpdateMetadata,
+  checkAppUpdate,
+  getCloudflareTunnelStatus,
+  installAppUpdate,
+  isTauri,
+  startCloudflareTunnel,
+  stopCloudflareTunnel,
+} from "@/lib/platform"
 import { queryKeys } from "@/lib/query-keys"
+import { getStorageItem, setStorageItem } from "@/lib/storage"
 
 function CompanySettingsForm({
   initialData,
@@ -295,25 +312,202 @@ export function CompanySettingsTab() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <RemoteAccessCard />
+      <AppUpdatesCard />
+    </div>
+  )
+}
+
+function RemoteAccessCard() {
+  const { t } = useTranslation()
+  const inDesktop = isTauri()
+  const [token, setToken] = useState(
+    () => getStorageItem("elamel_tunnel_token") ?? "",
+  )
+  const [tunnelRunning, setTunnelRunning] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (inDesktop) {
+      getCloudflareTunnelStatus().then(setTunnelRunning)
+    }
+  }, [inDesktop])
+
+  const handleToggleTunnel = async () => {
+    if (!token.trim()) {
+      toast.error(t("tunnelTokenPlaceholder"))
+      return
+    }
+    setLoading(true)
+    try {
+      setStorageItem("elamel_tunnel_token", token.trim())
+      if (tunnelRunning) {
+        const msg = await stopCloudflareTunnel()
+        toast.info(msg)
+        setTunnelRunning(false)
+      } else {
+        const msg = await startCloudflareTunnel(token.trim())
+        toast.success(msg)
+        setTunnelRunning(true)
+      }
+    } catch (err: unknown) {
+      toast.error(String(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
             <CardTitle className="text-base">
               {t("remoteAccessTitle")}
             </CardTitle>
           </div>
-          <CardDescription>{t("remoteAccessDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="rounded-md bg-muted/50 p-3 font-mono text-xs border">
-            ./scripts/setup-tunnel.sh
+          {inDesktop && (
+            <Badge
+              variant={tunnelRunning ? "default" : "outline"}
+              className={tunnelRunning ? "bg-emerald-600" : ""}
+            >
+              {tunnelRunning ? t("tunnelActive") : t("tunnelInactive")}
+            </Badge>
+          )}
+        </div>
+        <CardDescription>{t("remoteAccessDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        {inDesktop ? (
+          <div className="space-y-3">
+            <div className="grid gap-1.5">
+              <Label>{t("tunnelToken")}</Label>
+              <Input
+                type="password"
+                placeholder={t("tunnelTokenPlaceholder")}
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                disabled={tunnelRunning}
+              />
+            </div>
+            <LoadingButton
+              type="button"
+              variant={tunnelRunning ? "destructive" : "default"}
+              onClick={handleToggleTunnel}
+              loading={loading}
+            >
+              {tunnelRunning ? t("stopTunnel") : t("startTunnel")}
+            </LoadingButton>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t("remoteAccessTunnelRunningHint")}
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="rounded-md bg-muted/50 p-3 font-mono text-xs border">
+              ./scripts/setup-tunnel.sh
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("remoteAccessTunnelRunningHint")}
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function AppUpdatesCard() {
+  const { t } = useTranslation()
+  const inDesktop = isTauri()
+  const [checking, setChecking] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateMetadata | null>(null)
+  const [checkedOnce, setCheckedOnce] = useState(false)
+
+  if (!inDesktop) return null
+
+  const handleCheckUpdate = async () => {
+    setChecking(true)
+    try {
+      const res = await checkAppUpdate()
+      setUpdateInfo(res)
+      setCheckedOnce(true)
+      if (!res?.available) {
+        toast.info(t("appUpToDate"))
+      }
+    } catch (err: unknown) {
+      toast.error(String(err))
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  const handleInstallUpdate = async () => {
+    setInstalling(true)
+    try {
+      // 1. Safe SQLite snapshot first
+      await settingsApi.downloadBackup()
+      // 2. Download and install
+      await installAppUpdate()
+    } catch (err: unknown) {
+      toast.error(String(err))
+      setInstalling(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base">{t("updatesTitle")}</CardTitle>
+        </div>
+        <CardDescription>{t("updatesDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        {updateInfo?.available ? (
+          <div className="rounded-lg border border-primary/40 bg-primary/10 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-primary">
+                {t("updateAvailable")}: v{updateInfo.version}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                (Actuelle: v{updateInfo.current_version})
+              </span>
+            </div>
+            {updateInfo.body && (
+              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                {updateInfo.body}
+              </p>
+            )}
+            <LoadingButton
+              type="button"
+              onClick={handleInstallUpdate}
+              loading={installing}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {t("installAndRestart")}
+            </LoadingButton>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <LoadingButton
+              type="button"
+              variant="outline"
+              onClick={handleCheckUpdate}
+              loading={checking}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {t("checkUpdates")}
+            </LoadingButton>
+            {checkedOnce && !updateInfo?.available && (
+              <span className="flex items-center text-xs text-emerald-600 dark:text-emerald-400 gap-1.5 font-medium">
+                <CheckCircle2 className="h-4 w-4" />
+                {t("appUpToDate")}
+              </span>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

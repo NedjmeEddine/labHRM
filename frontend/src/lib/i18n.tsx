@@ -259,6 +259,20 @@ const translations = {
     remoteAccessTunnelRunningHint:
       "Pour démarrer un tunnel sécurisé, exécutez ./scripts/setup-tunnel.sh sur le PC ou utilisez le service cloudflared.",
     remoteAccessDocsLink: "Consulter le guide de configuration",
+    tunnelToken: "Jeton de tunnel Cloudflare (Token)",
+    tunnelTokenPlaceholder:
+      "Collez votre jeton de tunnel Cloudflare Zero Trust",
+    startTunnel: "Démarrer le tunnel",
+    stopTunnel: "Arrêter le tunnel",
+    tunnelActive: "Tunnel Connecté (En ligne)",
+    tunnelInactive: "Tunnel Inactif",
+    updatesTitle: "Mises à jour de l'application",
+    updatesDescription:
+      "Recherchez et installez les nouvelles versions officielles depuis GitHub Releases en un clic.",
+    checkUpdates: "Rechercher une mise à jour",
+    updateAvailable: "Nouvelle version disponible",
+    installAndRestart: "Installer et redémarrer",
+    appUpToDate: "Votre application est à jour.",
     notAvailable: "N/D",
 
     // Toasts
@@ -609,6 +623,19 @@ const translations = {
     remoteAccessTunnelRunningHint:
       "To start a secure tunnel, run ./scripts/setup-tunnel.sh on the host PC or use the cloudflared service.",
     remoteAccessDocsLink: "View configuration guide",
+    tunnelToken: "Cloudflare Tunnel Token",
+    tunnelTokenPlaceholder: "Paste your Cloudflare Zero Trust tunnel token",
+    startTunnel: "Start Tunnel",
+    stopTunnel: "Stop Tunnel",
+    tunnelActive: "Tunnel Connected (Online)",
+    tunnelInactive: "Tunnel Inactive",
+    updatesTitle: "Application Updates",
+    updatesDescription:
+      "Check and install new official releases directly from GitHub Releases in one click.",
+    checkUpdates: "Check for Updates",
+    updateAvailable: "New Version Available",
+    installAndRestart: "Install & Restart",
+    appUpToDate: "Your application is up to date.",
     notAvailable: "N/A",
 
     // Toasts
