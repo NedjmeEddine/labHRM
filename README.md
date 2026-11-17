@@ -16,7 +16,7 @@ Compared to the multi-container full-stack template:
    - Removed public signups, password recovery via SMTP, and multi-tenant user CRUD.
    - The entire app is authenticated for one administrator.
    - Seeded automatically on first startup from `.env`.
-   - Built-in CLI password reset tool: `uv run python reset_admin.py --email admin@example.com --password newpass`.
+   - Built-in CLI password reset tool: `uv run python reset_admin.py --email admin@elamel-lab.dz --password newpass`.
 3. **Unified Single-Process Web Serving**:
    - FastAPI natively serves both the REST API (`/api/v1`) and the compiled React single-page frontend.
    - The entire system can run in a single process (`uv run fastapi run`) or a single lightweight Docker container (~50MB RAM).
@@ -34,8 +34,8 @@ Compared to the multi-container full-stack template:
 ```
 Open **http://localhost:8000** in your browser.
 Default credentials:
-* **Email:** `admin@example.com`
-* **Password:** `changethis`
+* **Email:** `admin@elamel-lab.dz`
+* **Password:** `ElAmelLab2026!`
 
 ### Method 2: Development Mode (Hot Reload)
 Run the backend and frontend separately for instant hot-reloading:

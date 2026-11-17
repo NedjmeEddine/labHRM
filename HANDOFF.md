@@ -92,7 +92,7 @@ FastAPI serves **both** the REST API (`/api/v1/*`) and the compiled React SPA (`
 
 `PRAGMA foreign_keys=ON` and `PRAGMA journal_mode=WAL` are enabled on every SQLite connection (`backend/app/core/db.py`), paired with SQLModel `cascade_delete=True`. Domain status/type columns use `StrEnum` validation paired with SQLite `VARCHAR(30)` (`sa_type=String(30)`).
 
-1. **`User`:** Single administrator account seeded on first startup (`ADMIN_EMAIL=admin@example.com`, `ADMIN_PASSWORD=changethis` from `core/config.py` / `.env`). Password can be changed in UI (`/settings`) or via CLI (`python reset_admin.py --email ... --password ...`).
+1. **`User`:** Single administrator account seeded on first startup (`ADMIN_EMAIL=admin@elamel-lab.dz`, `ADMIN_PASSWORD=ElAmelLab2026!` from `core/config.py` / `.env`). Password can be changed in UI (`/settings`) or via CLI (`python reset_admin.py --email ... --password ...`).
 2. **`CompanySettings` (Singleton `id=1`):** `company_name` (`EL-AMEL LAB`), `address`, `phone`, `email`, `tax_id` (NIF/RC), `currency` (`DZD`), `working_days_per_month` (`22`), `default_annual_vacation_days` (`30`).
 3. **`Employee`:** Auto-generates `EMP-001`, `EMP-002`, ... if `employee_code` is blank. `status` (`EmployeeStatus`: `active` | `on_leave` | `terminated`). Rejects empty `employee_code` on `PATCH`.
 4. **`SalaryHistory`:** Appended via `services.employees.record_salary_change` / `create_employee` whenever an employee is created (`Initial hire salary`), updated via `PATCH /employees/{id}` with a changed salary, or given a raise via `POST /performance/`.
@@ -155,7 +155,7 @@ All routers except `/login/*` and `/utils/health-check/` require a valid Bearer 
 ```bash
 cd /home/nedjmo/labHRM/lab-hrm
 ./start.sh
-# App available at http://localhost:8000 (admin@example.com / changethis)
+# App available at http://localhost:8000 (admin@elamel-lab.dz / ElAmelLab2026!)
 ```
 
 ### Development Mode (Hot Reload)
@@ -187,7 +187,7 @@ bun run test
 ### CLI Admin Password Reset
 ```bash
 cd /home/nedjmo/labHRM/lab-hrm/backend
-uv run python reset_admin.py --email admin@example.com --password "NewPassword123"
+uv run python reset_admin.py --email admin@elamel-lab.dz --password "NewPassword123"
 ```
 
 ---
@@ -197,7 +197,7 @@ uv run python reset_admin.py --email admin@example.com --password "NewPassword12
 1. **SQLite UUIDs (`app/api/deps.py`):** SQLite's SQLAlchemy UUID processor fails if given a raw `str`. Always convert `uuid.UUID(token_data.sub)` before calling `session.get(User, user_id)`.
 2. **Pydantic Field Shadowing (`app/models.py`):** `AbsenceBase` has a field named `date`, so the type is imported as `from datetime import date as DateType` to prevent class-scope annotation shadowing in Python 3.14+/3.15.
 3. **`StrEnum` + SQLite (`app/models.py`):** Always pair `StrEnum` fields on `table=True` SQLModel classes with `sa_type=String(30)` so SQLite stores lowercase enum values (`"active"`, `"approved"`) rather than uppercase enum member names.
-4. **`email-validator` Reserved TLD:** Do not use `.local` domains for `ADMIN_EMAIL` (e.g. `admin@elamelab.local` fails `EmailStr` validation). Stick to `admin@example.com` or real domains.
+4. **`email-validator` Reserved TLD:** Do not use `.local` domains for `ADMIN_EMAIL` (e.g. `admin@elamelab.local` fails `EmailStr` validation). Use real domain formats like `admin@elamel-lab.dz`.
 5. **Always Rebuild Frontend After Route/UI Changes:** FastAPI serves compiled static assets from `backend/app/frontend/`. When adding a new TanStack Router file, run `bun run build` (or `bun run dev`) first so `src/routeTree.gen.ts` updates before `tsc -p tsconfig.build.json` runs.
 6. **Playwright `data-testid` Contracts:** Keep existing `data-testid`s intact when modifying dialogs (`emp-full-name`, `emp-job-title`, `emp-base-salary`, `emp-hire-date`, `absence-date`, `interval-start`, `interval-end`, `vac-start`, `vac-end`, `payroll-month-trigger`, `perf-bonus-input`, `edit-other-allowances`, `edit-live-net`, `download-backup-button`), and keep `"Initial hire salary"` intact in `services/employees.py`.
 7. **Tailwind v4 `DialogContent` Width:** `ui/dialog.tsx` applies `sm:max-w-lg`. To widen modals on desktop, pass `sm:max-w-2xl` or `sm:max-w-4xl` (not unprefixed `max-w-3xl`).

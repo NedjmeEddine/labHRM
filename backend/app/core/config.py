@@ -71,8 +71,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = f"sqlite:///{DEFAULT_DB_PATH}"
 
     # Default single admin credentials (initialized on first boot)
-    ADMIN_EMAIL: str = "admin@example.com"
-    ADMIN_PASSWORD: str = "changethis"
+    ADMIN_EMAIL: str = "admin@elamel-lab.dz"
+    ADMIN_PASSWORD: str = "ElAmelLab2026!"
 
     # Frontend host for CORS during dev
     FRONTEND_HOST: str = "http://localhost:5173"

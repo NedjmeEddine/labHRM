@@ -10,6 +10,6 @@ services:
       - ./data:/app/backend/data
     environment:
       - SECRET_KEY=${SECRET_KEY:-replace-with-a-secure-random-key-in-prod}
-      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changethis}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@elamel-lab.dz}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-ElAmelLab2026!}
       - PROJECT_NAME=EL-AMEL LAB

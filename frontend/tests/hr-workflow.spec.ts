@@ -7,8 +7,8 @@ test("complete HR workflow: employee, absence interval, vacation, performance, e
   // 1. Login & switch to English for readable assertions
   await page.goto("/login")
   await page.getByRole("button", { name: "FR" }).click()
-  await page.getByTestId("email-input").fill("admin@example.com")
-  await page.getByTestId("password-input").fill("changethis")
+  await page.getByTestId("email-input").fill("admin@elamel-lab.dz")
+  await page.getByTestId("password-input").fill("ElAmelLab2026!")
   await page.getByRole("button", { name: "Log In" }).click()
   await expect(page).toHaveURL("/")
   await expect(

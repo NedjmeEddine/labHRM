@@ -130,6 +130,10 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         session.add(admin)
+    elif admin.email == "admin@example.com":
+        admin.email = settings.ADMIN_EMAIL
+        admin.hashed_password = get_password_hash(settings.ADMIN_PASSWORD)
+        session.add(admin)
 
     # Seed singleton CompanySettings
     company = session.get(CompanySettings, 1)

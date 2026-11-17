@@ -20,13 +20,13 @@ test("unauthenticated redirect, bilingual FR/EN switcher, and admin login", asyn
   await expect(page.getByRole("button", { name: "Log In" })).toBeVisible()
 
   // Invalid login shows error
-  await page.getByTestId("email-input").fill("admin@example.com")
+  await page.getByTestId("email-input").fill("admin@elamel-lab.dz")
   await page.getByTestId("password-input").fill("wrongpassword")
   await page.getByRole("button", { name: "Log In" }).click()
   await expect(page).toHaveURL(/\/login/)
 
   // Valid login redirects to dashboard
-  await page.getByTestId("password-input").fill("changethis")
+  await page.getByTestId("password-input").fill("ElAmelLab2026!")
   await page.getByRole("button", { name: "Log In" }).click()
   await expect(page).toHaveURL("/")
   await expect(

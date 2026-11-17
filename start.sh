@@ -28,5 +28,5 @@ HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-8000}"
 
 echo ">> Starting FastAPI server at http://${HOST}:${PORT} ..."
-echo ">> Default Admin Login: admin@example.com / changethis"
+echo ">> Default Admin Login: admin@elamel-lab.dz / ElAmelLab2026!"
 uv run fastapi run app/main.py --host "$HOST" --port "$PORT"

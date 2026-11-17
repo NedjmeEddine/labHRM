@@ -7,8 +7,8 @@ test("Suppliers & Inventory workflow: create supplier, product, and check naviga
   await page.goto("/login")
   await page.waitForLoadState("networkidle")
 
-  await page.locator('[data-testid="email-input"]').fill("admin@example.com")
-  await page.locator('[data-testid="password-input"]').fill("changethis")
+  await page.locator('[data-testid="email-input"]').fill("admin@elamel-lab.dz")
+  await page.locator('[data-testid="password-input"]').fill("ElAmelLab2026!")
   await page.getByRole("button", { name: /se connecter|log in/i }).click()
 
   // Ensure redirect to dashboard

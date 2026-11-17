@@ -96,7 +96,7 @@ function Login() {
                   <FormControl>
                     <Input
                       data-testid="email-input"
-                      placeholder="admin@example.com"
+                      placeholder="admin@elamel-lab.dz"
                       type="email"
                       {...field}
                     />
