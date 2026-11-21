@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "EL-AMEL LAB",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "identifier": "com.elamel-lab.hrm",
   "build": {
     "frontendDist": "../../backend/app/frontend",

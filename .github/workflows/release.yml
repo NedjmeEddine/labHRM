@@ -7,24 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag (e.g. v1.0.0)'
+        description: 'Version tag (e.g. v1.0.2)'
         required: true
-        default: 'v1.0.0'
+        default: 'v1.0.2'
 
 jobs:
   release:
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: 'ubuntu-22.04'
-            args: '--bundles deb,appimage'
-          - platform: 'windows-latest'
-            args: '--bundles msi,nsis'
-
-    runs-on: ${{ matrix.platform }}
+    runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,26 +33,13 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install Linux system dependencies
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libayatana-appindicator3-dev
-
       - name: Build frontend
         run: |
           cd frontend
           bun install
           bun run build
 
-      - name: Build PyInstaller sidecar (Linux)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          chmod +x scripts/build-sidecar.sh
-          ./scripts/build-sidecar.sh
-
       - name: Build PyInstaller sidecar (Windows)
-        if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
           cd backend
@@ -71,7 +49,7 @@ jobs:
           Copy-Item dist\el-amel-backend.exe ..\frontend\src-tauri\binaries\el-amel-backend-x86_64-pc-windows-msvc.exe
 
       - name: Build and release Tauri application
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -83,4 +61,6 @@ jobs:
           releaseBody: "Consultez les notes de version pour la version ${{ github.event.inputs.tag || github.ref_name }}."
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.args }}
+          args: "--bundles msi,nsis"
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
