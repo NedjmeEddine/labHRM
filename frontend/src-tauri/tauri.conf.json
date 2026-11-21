@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "EL-AMEL LAB",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "identifier": "com.elamel-lab.hrm",
   "build": {
     "frontendDist": "../../backend/app/frontend",
@@ -38,6 +38,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "publisher": "NedjmeEddine",
     "copyright": "Copyright © 2026 NedjmeEddine",
     "shortDescription": "Système de Gestion RH & Stocks pour EL-AMEL LAB",
