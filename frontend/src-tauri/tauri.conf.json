@@ -38,6 +38,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "publisher": "NedjmeEddine",
+    "copyright": "Copyright © 2026 NedjmeEddine",
+    "shortDescription": "Système de Gestion RH & Stocks pour EL-AMEL LAB",
     "externalBin": ["binaries/el-amel-backend"],
     "icon": [
       "icons/32x32.png",

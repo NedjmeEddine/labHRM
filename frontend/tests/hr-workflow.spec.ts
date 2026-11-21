@@ -108,7 +108,8 @@ test("complete HR workflow: employee, absence interval, vacation, performance, e
   await expect(page.getByRole("cell", { name: "48 000,00 DZD" })).toBeVisible()
 
   // 7. Settings & WAL-safe SQLite Database Backup Download
-  await page.getByRole("link", { name: "Settings" }).click()
+  await page.getByTestId("user-menu").click()
+  await page.getByRole("menuitem", { name: "Settings" }).click()
   await expect(page).toHaveURL("/settings")
   await expect(
     page.getByRole("button", { name: /Download Backup/i }),

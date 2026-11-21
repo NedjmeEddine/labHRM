@@ -3,7 +3,6 @@ import {
   CalendarDays,
   Home,
   Palmtree,
-  Settings,
   Users,
   Wallet,
 } from "lucide-react"
@@ -32,7 +31,6 @@ export function AppSidebar() {
     { icon: Palmtree, title: t("navVacations"), path: "/vacations" },
     { icon: Wallet, title: t("navPayroll"), path: "/payroll" },
     { icon: Boxes, title: t("navInventory"), path: "/inventory" },
-    { icon: Settings, title: t("navSettings"), path: "/settings" },
   ]
 
   return (

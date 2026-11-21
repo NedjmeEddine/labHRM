@@ -2,9 +2,9 @@
 name = "app"
 version = "1.0.0"
 description = "EL-AMEL LAB - Gestion RH & Stocks"
-authors = ["EL-AMEL LAB"]
-license = ""
-repository = ""
+authors = ["NedjmeEddine <https://github.com/NedjmeEddine>"]
+license = "Proprietary"
+repository = "https://github.com/NedjmeEddine/labHRM"
 edition = "2024"
 rust-version = "1.90"
 
